@@ -50,8 +50,7 @@ public class S3AccessControl implements DecisionProcedure {
         requestedPolicies.put("objectACL", new ObjectInBucket(aclBucket, key));
         requestedPolicies.put("bucketACL", new ObjectInBucket(bucket, ByteString.copyFromUtf8("policy")));
         requestedPolicies.put("bucketPolicy", new ObjectInBucket(bucket, key));
-        ByteString usersBucket;//TODO : Romain : make it global variable
-        requestedPolicies.put("userPolicy", new ObjectInBucket(usersBucket, key));
+        requestedPolicies.put("userPolicy", new ObjectInBucket(this.userBucket, key));
         return requestedPolicies;
     }
     

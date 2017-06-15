@@ -3,7 +3,7 @@ package eu.antidotedb.client.test;
 import eu.antidotedb.client.AccessMonitor;
 import eu.antidotedb.client.AntidoteConfigManager;
 import eu.antidotedb.client.Bucket;
-import eu.antidotedb.client.SecureAntdoteClient;
+import eu.antidotedb.client.SecureAntidoteClient;
 import eu.antidotedb.client.decision.DecisionProcedure;
 import eu.antidotedb.client.transformer.CountingTransformer;
 import eu.antidotedb.client.transformer.LogTransformer;
@@ -19,7 +19,7 @@ public class SecureAntidoteTest {
     final boolean debugLog;
     final CountingTransformer messageCounter;
     final AccessMonitor accessMonitor;
-    final SecureAntdoteClient antidoteClient;
+    final SecureAntidoteClient antidoteClient;
     final DecisionProcedure decProc;
     final Bucket<String> bucket;
     final String bucketKey;
@@ -44,11 +44,10 @@ public class SecureAntidoteTest {
         AntidoteConfigManager antidoteConfigManager = new AntidoteConfigManager();
 
 
-        antidoteClient = new SecureAntdoteClient(decProc, transformers, antidoteConfigManager.getConfigHosts());
+        antidoteClient = new SecureAntidoteClient(decProc, transformers, antidoteConfigManager.getConfigHosts());
 
         this.bucketKey = bucketKey;
         bucket = Bucket.create(bucketKey);
     }
    
-    
 }
