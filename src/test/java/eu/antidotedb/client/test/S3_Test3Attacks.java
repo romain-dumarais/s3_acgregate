@@ -13,9 +13,9 @@ import org.junit.Test;
  * scenario 11
  * @author Romain
  */
-public class S3_TestAttacks extends S3Test{
+public class S3_Test3Attacks extends S3Test{
     
-    public S3_TestAttacks() {
+    public S3_Test3Attacks() {
         super("bucketTestS3", false, new S3DecisionProcedure());
     }
     

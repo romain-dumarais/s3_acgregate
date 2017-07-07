@@ -12,6 +12,10 @@ import com.google.protobuf.ByteString;
  */
 public class S3KeyLink {
     
+    public ByteString domainFlag(ByteString bucketKey, ByteString objectKey){
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+    
     public ByteString securityBucket(ByteString bucketKey){
         throw new UnsupportedOperationException("not implemented yet");
     }

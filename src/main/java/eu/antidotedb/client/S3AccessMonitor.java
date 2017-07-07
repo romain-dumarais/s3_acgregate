@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.ObjectInBucket;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
+import java.util.Collection;
 
 /**
  * This class extends the Access Monitor transformer to S3 Access Control smeantics
@@ -13,6 +14,7 @@ import eu.antidotedb.client.decision.S3KeyLink;
  */
 public class S3AccessMonitor extends AccessMonitor{
     private final S3KeyLink keyLink=new S3KeyLink();
+    private final S3AccessResources resources=new S3AccessResources();
     
     
     public S3AccessMonitor(S3DecisionProcedure proc) {
@@ -29,24 +31,12 @@ public class S3AccessMonitor extends AccessMonitor{
     */
     
     
-    
-    /*
-    Romain : where to put this ?
-    //TODO : Romain : should be used in a transaction. Why not a helper ?
-    public void assignACL(ObjectInBucket object, Iterable<? extends ByteString> permissions){
-        //TODO : Romain : define args using assignPermissions + Policy.assign
-        throw new UnsupportedOperationException("not implemented yet");
+    void assignBucketACLPermissions(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString user, Collection<ByteString> permissions) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    //TODO : Romain : should be used in a transaction. Why not a helper ?
-    public void assignACL(ByteString target_object, ByteString bucket, Iterable<? extends ByteString> permissions){
-        //TODO : Romain : define args using assignPermissions
-        throw new UnsupportedOperationException("not implemented yet");
+
+    void unsetDomain(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    public void assignPolicy(){
-        //TODO : Romain : define args using assignPermissions
-        throw new UnsupportedOperationException("not implemented yet");
-    }*/
     
 }

@@ -18,6 +18,7 @@ import java.util.List;
  * @author Romain from a model from mweber_ukl
  */
 public final class S3Client extends SecureAntidoteClient{
+    private S3AccessMonitor accessMonitor; //override the AccessMonitor
     
     /*
     Creates the transactions, with a
@@ -37,14 +38,13 @@ prevent to create Txn with the domain name as user ID.
         this(transformerFactories, Arrays.asList(hosts));
     }
 
-    
     public S3Client(List<TransformerFactory> transformerFactories, List<Host> hosts) {
         List<TransformerFactory> factories = new ArrayList<>();
-        super.accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
-        factories.add(accessMonitor);
+        this.accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
+        factories.add(this.accessMonitor);
         factories.add(new StaticInteractiveTransformer());
         factories.addAll(transformerFactories);
-        init(factories, hosts);
+        super.init(factories, hosts);
     }
     
     
@@ -55,7 +55,7 @@ prevent to create Txn with the domain name as user ID.
     //INTERACTIVE
     public SecuredInteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
         //TODO : Romain
-        if(user.equals(domain)){throw new AccessControlException("root credentials not permitted");}
+        if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
     }
     
@@ -67,7 +67,7 @@ prevent to create Txn with the domain name as user ID.
     public SecuredStaticTransaction createStaticTransaction(ByteString user, ByteString domain, Object userData) {
         //TODO : Romain
         //return new SecuredStaticTransaction(this, accessMonitor, user, userData);
-        if(user.equals(domain)){throw new AccessControlException("root credentials not permitted");}
+        if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
     }
 
@@ -79,7 +79,7 @@ prevent to create Txn with the domain name as user ID.
     public SecuredNoTransaction noTransaction(ByteString user, ByteString domain, Object userData) {
         //TODO : Romain
         //return new SecuredNoTransaction(this, accessMonitor, user, userData);
-        if(user.equals(domain)){throw new AccessControlException("root credentials not permitted");}
+        if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
     }
 

@@ -1,4 +1,4 @@
-package eu.antidotedb.client.decision;
+package eu.antidotedb.client;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
@@ -56,11 +56,6 @@ public class Statement {
         //this.action = action;
         this.conditionBlock = value.get("Condition Block").asString();
         //TODO : Romain : 
-    }
-    
-    public String toString(){
-        //TODO : Romain : write it as a string with separators
-        throw new UnsupportedOperationException("Not supported yet."); 
     }
     
 }

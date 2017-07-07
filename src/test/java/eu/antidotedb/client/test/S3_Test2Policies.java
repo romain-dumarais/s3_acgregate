@@ -7,11 +7,24 @@ import org.junit.Test;
  * Test Class to implement scenarii 5 to 10
  * @author Romain
  */
-public class S3_TestPolicies extends S3Test{
+public class S3_Test2Policies extends S3Test{
     
-    public S3_TestPolicies() {
+    public S3_Test2Policies() {
         super(false);
     }
+    
+        /*TODO : Romain : remove
+    try{
+            SecuredInteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            tx1.commitTransaction();
+            System.out.println("2 : user1 ACL : success");
+        }catch(AccessControlException e){
+            System.out.println("2 : user1 ACL : success");
+        }catch(Exception e){
+            System.err.println("2 : user1 ACL : fail");
+            System.err.println(e);
+    }
+*/
     
     /***
      * initializes ACLs, 2 users, 1 bucket with 2 objects

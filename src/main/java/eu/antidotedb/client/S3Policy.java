@@ -1,4 +1,4 @@
-package eu.antidotedb.client.decision;
+package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.CrdtMVRegister;
@@ -19,23 +19,45 @@ import java.util.Set;
  * @author Romain
  * TODO : everything
  */
-public class S3Policy extends CrdtMVRegister{
+public abstract class S3Policy {
     //Romain : I need to choose the status of this class. Is it something that should be in the client package ?
     //extends CrdtMVregister<T>, or just MVRegisterRef ? Or takes this a private fields ?
     private List<Statement> statements;
     private List<ByteString> groups;
-    //attributes like array
-
-    //Romain : do I need this ?
-    public S3Policy(Collection<ByteString> policy){
-        throw new UnsupportedOperationException("not implemented yet");
-    }
     
-    public S3Policy(List<ByteString> groups, List<Statement>){
+    public S3Policy(List<ByteString> groups, List<Statement> statements){
         this.groups=groups;
         this.statements=statements;
     }
+    
+    public List<ByteString> getGroups(){
+        return this.groups;
+    }
+    
+    public void addStatement(Statement statement){
+        this.statements.add(statement);
+    }
+    
+    public void addGroup(ByteString group){
+        this.groups.add(group);
+    }
+    
+    public void removeStatement(Statement statement){
+        this.statements.remove(statement);
+    }
+    
+    public void removeGroup(ByteString group){
+        this.groups.remove(group);
+    }
+    
+    public S3Policy readPolicy(S3InteractiveTransaction tx, ByteString key){
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 
+    public void assignPolicy(S3InteractiveTransaction tx, ByteString key){
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+    
     
     public boolean explicitAllow(/*all the needed args + optional userData*/){
         throw new UnsupportedOperationException("not implemented yet");
@@ -44,5 +66,6 @@ public class S3Policy extends CrdtMVRegister{
     public boolean explicitDeny(/*all the needed args + optional userData*/){
         throw new UnsupportedOperationException("not implemented yet");
     }
+    
     
 }

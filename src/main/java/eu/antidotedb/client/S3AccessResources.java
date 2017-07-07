@@ -1,8 +1,6 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.decision.S3ACL;
-import eu.antidotedb.client.decision.S3Policy;
 
 /**
  * Gets the requested Policies and return them either as S3ACL instances, either as S3Policy instance.
@@ -10,6 +8,10 @@ import eu.antidotedb.client.decision.S3Policy;
  * @author Romain
  */
 public class S3AccessResources {
+    
+    public ByteString getDomain(ByteString objectKey, ByteString bucketKeys){
+        throw new UnsupportedOperationException("not implemented yet");
+    }
     
     public S3ACL getObjectACL(ByteString objectKey, ByteString bucketKeys){
         throw new UnsupportedOperationException("not implemented yet");

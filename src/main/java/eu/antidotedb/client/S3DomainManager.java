@@ -9,7 +9,7 @@ import eu.antidotedb.client.decision.S3KeyLink;
 • DeleteBucket ( bucket_key) : deletes a bucket by setting the domain flag
 • rootTransaction : create SecuredTransactions with root credentials
  * @author Romain
- * TODO : everythong
+ * TODO : everything
  */
 public class S3DomainManager{
     private final ByteString domain;
@@ -18,7 +18,7 @@ public class S3DomainManager{
     S3DomainManager(ByteString domain) {
         this.domain = domain;
     }
-    //TODO : extends clint ?
+    //TODO : way to list the users ?
     
     public void createBucket(ByteString bucketKey, SecuredInteractiveTransaction tx){
         //TODO : Romain
