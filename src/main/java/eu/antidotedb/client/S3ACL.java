@@ -29,7 +29,7 @@ public abstract class S3ACL{
         }
     }
     
-    
+    /*
     @Override
     public String toString(){
         String acl="{ ";
@@ -39,7 +39,7 @@ public abstract class S3ACL{
         }
         acl.concat(" }");
         return acl;
-    }
+    }*/
     
     public String getRight(String userid){
         return decodeRight(this.permissions.get(ByteString.copyFromUtf8(userid)));

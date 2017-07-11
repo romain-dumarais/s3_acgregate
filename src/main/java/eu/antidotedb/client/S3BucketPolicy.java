@@ -1,8 +1,6 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -12,7 +10,7 @@ import java.util.List;
 public final class S3BucketPolicy extends S3Policy{
     
     
-    public S3BucketPolicy(List<ByteString> groups, List<Statement> statements) {
+    public S3BucketPolicy(List<ByteString> groups, List<S3Statement> statements) {
         super(groups, statements);
     }
     

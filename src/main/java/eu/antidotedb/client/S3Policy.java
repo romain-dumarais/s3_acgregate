@@ -1,13 +1,7 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.CrdtMVRegister;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
-import eu.antidotedb.client.ValueCoder;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Extends MVregister
@@ -20,12 +14,10 @@ import java.util.Set;
  * TODO : everything
  */
 public abstract class S3Policy {
-    //Romain : I need to choose the status of this class. Is it something that should be in the client package ?
-    //extends CrdtMVregister<T>, or just MVRegisterRef ? Or takes this a private fields ?
-    private List<Statement> statements;
+    private List<S3Statement> statements;
     private List<ByteString> groups;
     
-    public S3Policy(List<ByteString> groups, List<Statement> statements){
+    public S3Policy(List<ByteString> groups, List<S3Statement> statements){
         this.groups=groups;
         this.statements=statements;
     }
@@ -34,7 +26,7 @@ public abstract class S3Policy {
         return this.groups;
     }
     
-    public void addStatement(Statement statement){
+    public void addStatement(S3Statement statement){
         this.statements.add(statement);
     }
     
@@ -42,7 +34,7 @@ public abstract class S3Policy {
         this.groups.add(group);
     }
     
-    public void removeStatement(Statement statement){
+    public void removeStatement(S3Statement statement){
         this.statements.remove(statement);
     }
     
@@ -51,10 +43,12 @@ public abstract class S3Policy {
     }
     
     public S3Policy readPolicy(S3InteractiveTransaction tx, ByteString key){
+        //TODO : create a MVreg object and read it, via a dedicated helper in the S3InteractiveTransaction
         throw new UnsupportedOperationException("not implemented yet");
     }
 
     public void assignPolicy(S3InteractiveTransaction tx, ByteString key){
+        //TODO : create a MVreg object and update it, via a dedicated helper in the S3InteractiveTransaction
         throw new UnsupportedOperationException("not implemented yet");
     }
     

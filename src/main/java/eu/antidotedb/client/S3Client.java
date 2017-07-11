@@ -2,6 +2,7 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
+import eu.antidotedb.client.decision.DecisionProcedure;
 import eu.antidotedb.client.transformer.StaticInteractiveTransformer;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.transformer.TransformerFactory;
@@ -20,11 +21,6 @@ import java.util.List;
 public final class S3Client extends SecureAntidoteClient{
     private S3AccessMonitor accessMonitor; //override the AccessMonitor
     
-    /*
-    Creates the transactions, with a
-loginAsRoot → return a Domain instance
-prevent to create Txn with the domain name as user ID.
-    */
     //BUILDERS
     public S3Client(Host... hosts) {
         this(Collections.emptyList(), hosts);
@@ -45,6 +41,7 @@ prevent to create Txn with the domain name as user ID.
         factories.add(new StaticInteractiveTransformer());
         factories.addAll(transformerFactories);
         super.init(factories, hosts);
+        //super(new S3DecisionProcedure(), transformerFactories, hosts);
     }
     
     
