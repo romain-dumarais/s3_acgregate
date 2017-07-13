@@ -1,24 +1,24 @@
 package eu.antidotedb.client.test;
 
-import com.google.protobuf.ByteString;
 import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.GMAP;
 import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.ORSET;
+import eu.antidotedb.client.Bucket;
+import eu.antidotedb.client.CrdtRegister;
 import eu.antidotedb.client.CrdtSet;
-import eu.antidotedb.client.IntegerRef;
-import eu.antidotedb.client.MapRef;
 import eu.antidotedb.client.RegisterRef;
+import eu.antidotedb.client.S3BucketACL;
 import eu.antidotedb.client.S3BucketPolicy;
 import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import eu.antidotedb.client.S3ObjectACL;
 import eu.antidotedb.client.S3Policy;
 import eu.antidotedb.client.S3Statement;
 import eu.antidotedb.client.S3UserPolicy;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
-import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.AccessControlException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import org.junit.Test;
 
@@ -27,14 +27,27 @@ import org.junit.Test;
  * @author Romain
  */
 public class S3_Test2Policies extends S3Test{
+    final CrdtSet<String> object3;
+    final Bucket<String> bucket2;
     
     public S3_Test2Policies() {
         super(false);
+        this.bucket2 = Bucket.create("bucketTestS3");
+        this.object3 = bucket2.set("object1TestS3", ValueCoder.utf8String).toMutable();
     }
     
-        /*TODO : Romain : remove
+        /*TODO : Romain : remove MATOS
     try{
             SecuredInteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+    
+            object1.add("test 1 field 1");
+            object1.add("test 1 field 2");
+            object1.push(tx1);
+            
+            object2.register("testRegister",ValueCoder.utf8String).set("field1:testRegister");//add field 1 : register
+            object2.counter("testInteger").increment(1);
+            object2.push(tx1);
+    
             tx1.commitTransaction();
             System.out.println("2 : user1 ACL : success");
         }catch(AccessControlException e){
@@ -56,7 +69,7 @@ public class S3_Test2Policies extends S3Test{
      * access tests
      */
     @Test
-    public void scenario_5(){
+    public void scenario_5init(){
         //admin can not create user2
         try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
@@ -93,7 +106,7 @@ public class S3_Test2Policies extends S3Test{
             S3InteractiveTransaction tx3 = domainManager.startTransaction();
             domainManager.createUser(user2, tx3);
             List<S3Statement> statements = new ArrayList<>();
-            statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList("assignPolicy"), Arrays.asList("*"), ""));
+            statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList("assignPolicy","assignACL"), Arrays.asList("*"), ""));
             S3Policy adminPolicy = new S3UserPolicy(new ArrayList<>(), statements);
             adminPolicy.assignPolicy(tx3, user2);
             tx3.commitTransaction();
@@ -102,6 +115,28 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("5 : admin can write Policies : fail");
             System.err.println(e);
         }
+        //admin resets all ACLs
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(admin, domain);
+            HashMap<String, String> permissions;
+            permissions = new HashMap<>();
+            permissions.put("admin","writeACL");
+            permissions.put("user1", "default");
+            permissions.put("user2","default");
+            S3ObjectACL resetObjACL = new S3ObjectACL(permissions);
+            S3BucketACL resetBuckACL = new S3BucketACL(permissions);
+            resetObjACL.assign(tx3, bucket1.getName(), object1.getRef().getKey());
+            resetObjACL.assign(tx3, bucket1.getName(), object2.getRef().getKey());
+            resetBuckACL.assign(tx3, bucket1.getName());
+            tx3.commitTransaction();
+            System.out.println("5 : admin can write Policies : success");
+        }catch(Exception e){
+            System.err.println("5 : admin can write Policies : fail");
+            System.err.println(e);
+        }
+    }
+    @Test
+    public void scenario_5(){
         //admin gives user2 : r for object1, rw for object2
         try{
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, domain);
@@ -120,10 +155,8 @@ public class S3_Test2Policies extends S3Test{
         //user2 fails to write object1
         try{
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user2, domain);
-            SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
-            CrdtSet<String> object1crdt = object1Ref.toMutable();
-            object1crdt.add("test 5 transaction 5 : unauthorized");//write in object1
-            object1crdt.push(tx5);
+            object1.add("test 5 transaction 5 : unauthorized");
+            object1.push(tx5);
             tx5.commitTransaction();
             System.err.println("5 : user2 fails to write object1 : fail");
         }catch(AccessControlException e){
@@ -135,8 +168,8 @@ public class S3_Test2Policies extends S3Test{
         //user2 writes in object2
         try{
             S3InteractiveTransaction tx6 = antidoteClient.startTransaction(user2, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.register("testRegister", ValueCoder.utf8String).set(tx6, "field1: update in test 5 transaction 6"); //write in object2
+            object2.register("testRegister",ValueCoder.utf8String).set("field1: update in test 5 transaction 6");
+            object2.push(tx6);
             tx6.commitTransaction();
             System.out.println("6 : user2 writes object2 : success");
         }catch(Exception e){
@@ -175,10 +208,8 @@ public class S3_Test2Policies extends S3Test{
         //user1 fails to write object1
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-            SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
-            CrdtSet<String> object1crdt = object1Ref.toMutable();
-            object1crdt.add("test 5b transaction 2 : unauthorized");//write in object1
-            object1crdt.push(tx2);
+            object1.add("test 5b transaction 2 : unauthorized");
+            object1.push(tx2);
             tx2.commitTransaction();
             System.err.println("5b : user1 fails to write object1 : fail");
         }catch(AccessControlException e){
@@ -190,8 +221,9 @@ public class S3_Test2Policies extends S3Test{
         //user1 writes in object2
         try{
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.register("testRegister", ValueCoder.utf8String).set(tx3, "field1: update in test 5b transaction 3"); //write in object2
+            object2.register("testRegister",ValueCoder.utf8String).set("field1: update in test 5b transaction 3");
+            object2.counter("testInteger").increment(1);
+            object2.push(tx3);
             tx3.commitTransaction();
             System.out.println("5b : user1 writes object2 : success");
         }catch(Exception e){
@@ -202,10 +234,8 @@ public class S3_Test2Policies extends S3Test{
         //user2 fails to write object1
         try{
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user2, domain);
-            SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
-            CrdtSet<String> object1crdt = object1Ref.toMutable();
-            object1crdt.add("test 5b transaction 4 : unauthorized");//write in object1
-            object1crdt.push(tx4);
+            object1.add("test 5b transaction 4 : unauthorized");
+            object1.push(tx4);
             tx4.commitTransaction();
             System.err.println("5b : user2 fails to write object1 : fail");
         }catch(AccessControlException e){
@@ -217,8 +247,9 @@ public class S3_Test2Policies extends S3Test{
         //user2 writes in object2
         try{
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user2, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.register("testRegister", ValueCoder.utf8String).set(tx5, "field1: update in test 5b transaction 5"); //write in object2
+            object2.register("testRegister",ValueCoder.utf8String).set("field1: update in test 5b transaction 5");//write in object2
+            object2.counter("testInteger").increment(1);
+            object2.push(tx5);
             tx5.commitTransaction();
             System.out.println("5b : user2 writes object2 : success");
         }catch(Exception e){
@@ -228,43 +259,121 @@ public class S3_Test2Policies extends S3Test{
     }
     
     /**
-     * I change admin user policy : it can write any policy
-     * user1 fails to write its policy
-     * amdin writes its policy : allows him to read everything
-     * access tests
+     * scenario 5 based on operation type
+     * 
      */
     @Test
-    public void scenario_6(){
-        //admin writes in bucket Policy : user1 : map allow set deny, user2 : allow any write op
+    public void scenario_5ter(){
+        //admin writes in bucket Policy : user1 : add allow, increment deny. user2 allow any op
         //admin writes in user2Policy : map allow set deny
         try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             List<S3Statement> statements1 = new ArrayList<>();
-            statements1.add(new S3Statement(false, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("*"), ""));
-            statements1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("*"), ""));
+            statements1.add(new S3Statement(false, Arrays.asList("user1"), Arrays.asList("add"), Arrays.asList("*"), ""));//user1 can not update object1
+            statements1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("increment","set"), Arrays.asList("*"), ""));//user1 can update object2
             statements1.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList("*"), Arrays.asList("*"), ""));
             List<S3Statement> statements2 = new ArrayList<>();
-            statements2.add(new S3Statement(false, Arrays.asList("user2"), Arrays.asList("*"), ORSET, ""));
-            statements2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList("*"), GMAP, ""));
+            statements2.add(new S3Statement(false, Arrays.asList("user2"), Arrays.asList("add"), Arrays.asList("*"), ""));
+            statements2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList("increment","set"), Arrays.asList("*"), ""));
             S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements1);
             S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             user2Policy.assignPolicy(tx1, user2);
             tx1.commitTransaction();
-            System.out.println("6 : admin writes policies : success");
+            System.out.println("5ter : admin writes policies : success");
         }catch(Exception e){
-            System.err.println("6 : admin writes policies : fail");
+            System.err.println("5ter : admin writes policies : fail");
             System.err.println(e);
         }
-        
         //user1 fails to write object1
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-            SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
-            CrdtSet<String> object1crdt = object1Ref.toMutable();
-            object1crdt.add("test 6 transaction 2 : unauthorized");//write in object1
-            object1crdt.push(tx2);
+            object1.add("test 5ter transaction 2 : unauthorized");
+            object1.push(tx2);
             tx2.commitTransaction();
+            System.err.println("5ter : user1 fails to write object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("5ter : user1 fails to write object1 : success");
+        }catch(Exception e){
+            System.err.println("5ter : user1 fails to write object1 : fail");
+            System.err.println(e);
+        }
+        //user1 writes in object2
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
+            object2.register("testRegister",ValueCoder.utf8String).set("field1: update in test 5ter transaction 3");//write in object2
+            object2.counter("testInteger").increment(1);
+            object2.push(tx3);
+            tx3.commitTransaction();
+            System.out.println("5ter : user1 writes object2 : success");
+        }catch(Exception e){
+            System.err.println("5ter : user1 writes object2  : fail");
+            System.err.println(e);
+        }
+        //user2 fails to write object1
+        try{
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user2, domain);
+            object1.add("test 5ter transaction 4 : unauthorized");//write in object1
+            object1.push(tx4);
+            tx4.commitTransaction();
+            System.err.println("5ter : user2 fails to write object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("5ter : user2 fails to write object1 : success");
+        }catch(Exception e){
+            System.err.println("5ter : user2 fails to write object1 : fail");
+            System.err.println(e);
+        }
+        //user2 writes in object2
+        try{
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user2, domain);
+            object2.register("testRegister",ValueCoder.utf8String).set("field1: update in test 5ter transaction 5"); //write in object2
+            object2.counter("testInteger").increment(1);
+            object2.push(tx5);
+            tx5.commitTransaction();
+            System.out.println("5ter : user2 writes object2 : success");
+        }catch(Exception e){
+            System.err.println("5ter : user2 writes object2  : fail");
+            System.err.println(e);
+        }
+        
+    }
+    /**
+     * admin writes user1 its policy : allows him to read everything in bucket1
+     * access tests
+     */
+    @Test
+    public void scenario_6(){
+        //admin WritePolicy user1 : can read anything bucket
+        try{
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            List<S3Statement> statements = new ArrayList<>();
+            statements.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("read"), bucket1.getName(), ""));
+            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(), statements);
+            user1Policy.assignPolicy(tx1, user1);
+            tx1.commitTransaction();
+            System.out.println("6 : admin write policy : success");
+        }catch(Exception e){
+            System.err.println("6 : admin write policy : fail");
+            System.err.println(e);
+        }
+        try{
+            S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+            S3InteractiveTransaction tx2 = domainManager.startTransaction();
+            domainManager.createBucket(bucket2.getName(), tx2);
+            object3.add("field 1 test 6");
+            object3.push(tx2);
+            tx2.commitTransaction();
+            System.out.println("6 : init bucket2 & object3 : success");
+        }catch(Exception e){
+            System.err.println("6 : init bucket2 & object3 : fail");
+            System.err.println(e);
+        }
+        //user1 fails to write object1
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
+            object1.add("test 6 transaction 3 : unauthorized");
+            object1.push(tx3);
+            tx3.commitTransaction();
             System.err.println("6 : user1 fails to write object1 : fail");
         }catch(AccessControlException e){
             System.out.println("6 : user1 fails to write object1 : success");
@@ -272,76 +381,183 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("6 : user1 fails to write object1 : fail");
             System.err.println(e);
         }
-        //user1 writes in object2
+        //user1 reads object2
         try{
-            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.register("testRegister", ValueCoder.utf8String).set(tx3, "field1: update in test 6 transaction 3"); //write in object2
-            tx3.commitTransaction();
-            System.out.println("6 : user1 writes object2 : success");
-        }catch(Exception e){
-            System.err.println("6 : auser1 writes object2  : fail");
-            System.err.println(e);
-        }
-        
-        //user2 fails to write object1
-        try{
-            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user2, domain);
-            SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
-            CrdtSet<String> object1crdt = object1Ref.toMutable();
-            object1crdt.add("test 6 transaction 4 : unauthorized");//write in object1
-            object1crdt.push(tx4);
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
+            object2.register("testRegister",ValueCoder.utf8String).getValue();
             tx4.commitTransaction();
-            System.err.println("6 : user2 fails to write object1 : fail");
-        }catch(AccessControlException e){
-            System.out.println("6 : user2 fails to write object1 : success");
+            System.out.println("6 : user1 reads object2 : success");
         }catch(Exception e){
-            System.err.println("6 : user2 fails to write object1 : fail");
+            System.err.println("6 : user1 reads object2  : fail");
             System.err.println(e);
         }
-        //user2 writes in object2
+        //user2 fails to read object3
         try{
-            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user2, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.register("testRegister", ValueCoder.utf8String).set(tx5, "field1: update in test 6 transaction 5"); //write in object2
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user1, domain);
+            object3.getValues();
             tx5.commitTransaction();
-            System.out.println("6 : user2 writes object2 : success");
+            System.err.println("6 : user1 fails to read object3 : fail");
+        }catch(AccessControlException e){
+            System.out.println("6 : user1 fails to read object3 : success");
         }catch(Exception e){
-            System.err.println("6 : user2 writes object2  : fail");
-            System.err.println(e);
+            System.err.println("6 : user1 fails to read object3 : fail");
+            
         }
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
     }
     
     /**
-     * create complex scenario, check a little explicit deny in policy for usr1,
-     * in ACL for user2 prevent them to do anything
+     * verify explicit deny :
+     * -user1: statement deny in bucketACL, allow in Policy
+     * -user2: statement deny in Policy
      * access tests
      */
     @Test
     public void scenario_7(){
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
+        //set situation
+         try{
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            List<S3Statement> statements0 = new ArrayList<>();
+            statements0.add(new S3Statement(false, Arrays.asList("user2"), Arrays.asList("read"), bucket1.getName(), ""));
+            statements0.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("read"), bucket1.getName(), ""));
+            List<S3Statement> statements1 = new ArrayList<>();
+            statements1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("read"), bucket1.getName(), ""));
+            List<S3Statement> statements2 = new ArrayList<>();
+            statements2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList("read"), bucket1.getName(), ""));
+            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements0);
+            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),statements1);
+            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
+            bucketPolicy.assignPolicy(tx1, bucket1.getName());
+            user1Policy.assignPolicy(tx1, user1);
+            user2Policy.assignPolicy(tx1, user2);
+            
+            HashMap<String, String> readPermissions, restrictedPermissions;
+            readPermissions = new HashMap<>(); restrictedPermissions = new HashMap<>();
+            readPermissions.put("admin","writeACL");
+            readPermissions.put("user1", "read");
+            readPermissions.put("user2","read");
+            restrictedPermissions.put("admin","writeACL");
+            restrictedPermissions.put("user1","none");
+            restrictedPermissions.put("user2","read");
+            S3ObjectACL objectACL = new S3ObjectACL(readPermissions);
+            S3BucketACL bucketACL = new S3BucketACL(restrictedPermissions);
+            objectACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
+            objectACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
+            bucketACL.assign(tx1, bucket1.getName());
+            tx1.commitTransaction();
+            System.out.println("7 : admin writes policies : success");
+        }catch(Exception e){
+            System.err.println("7 : admin writes policies : fail");
+            System.err.println(e);
+        }
+        //user1 fails to read object1
+        try{
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+            object1.getValues();
+            tx2.commitTransaction();
+            System.err.println("7 : user1 fails to read object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("7 : user1 fails to read object1 : success");
+        }catch(Exception e){
+            System.err.println("7 : user1 fails to read object1 : fail");
+            System.err.println(e);
+        }
+        //user2 fails to read object1
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user2, domain);
+            object1.getValues();
+            tx3.commitTransaction();
+            System.err.println("7 : user2 fails to read object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("7 : user2 fails to read object1 : success");
+        }catch(Exception e){
+            System.err.println("7 : user2 fails to read object1 : fail");
+            System.err.println(e);
+        }
     }
     
     /**
-     * create complex scenario, check a little explicit allow in policy for usr1,
-     * in ACL for user2 enables them to do anything
-     * access tests
+     * reset all access Resources
+     * check that without any statement, the default operation is deny
      */
     @Test
     public void scenario_8(){
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
+        //set situation
+         try{
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
+            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+            bucketPolicy.assignPolicy(tx1, bucket1.getName());
+            user1Policy.assignPolicy(tx1, user1);
+            user1Policy.assignPolicy(tx1, user2);
+            
+            HashMap<String, String> readPermissions, restrictedPermissions;
+            readPermissions = new HashMap<>(); restrictedPermissions = new HashMap<>();
+            readPermissions.put("admin","writeACL");
+            readPermissions.put("user1","default");
+            readPermissions.put("user2","default");
+            restrictedPermissions.put("admin","writeACL");
+            restrictedPermissions.put("user1","default");
+            restrictedPermissions.put("user2","default");
+            S3ObjectACL objectACL = new S3ObjectACL(readPermissions);
+            S3BucketACL bucketACL = new S3BucketACL(restrictedPermissions);
+            objectACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
+            objectACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
+            bucketACL.assign(tx1, bucket1.getName());
+            tx1.commitTransaction();
+            System.out.println("8 : admin reset all resources : success");
+        }catch(Exception e){
+            System.err.println("8 : admin reset all resources : fail");
+            System.err.println(e);
+        }
+         //user1 fails to read object1
+        try{
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+            object1.getValues();
+            tx2.commitTransaction();
+            System.err.println("8 : user1 fails to read object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("8 : user1 fails to read object1 : success");
+        }catch(Exception e){
+            System.err.println("8 : user1 fails to read object1 : fail");
+            System.err.println(e);
+        }
+        //user2 fails to read object1
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user2, domain);
+            object1.getValues();
+            tx3.commitTransaction();
+            System.err.println("8 : user2 fails to read object1 : fail");
+        }catch(AccessControlException e){
+            System.out.println("8 : user2 fails to read object1 : success");
+        }catch(Exception e){
+            System.err.println("8 : user2 fails to read object1 : fail");
+            System.err.println(e);
+        }
     }
     
     /**
-     * create simple scenario. checks a lack of allow/deny results in an explicit deny
-     * access tests
+     * ownership tests
      */
     @Test
     public void scenario_9(){
+        //try to transfer ownership of bucket2 to another domain : newdomain
+        try{
+            S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+            S3InteractiveTransaction tx1 = domainManager.startTransaction();
+            Bucket<String> securityBucket = Bucket.create(domainManager.getsecurityBucket(bucket1.getName()).toStringUtf8());
+            RegisterRef<String> domainFlagRef = securityBucket.register("domain", ValueCoder.utf8String); // grow-only Map
+            CrdtRegister<String> domainFlag = domainFlagRef.toMutable();
+            domainFlag.set("newdomain");
+            tx1.commitTransaction();
+            System.err.println("9 : transfer ownerhsip : fail");
+        }catch(AccessControlException e){
+            System.out.println("9 : transfer ownership : success");
+        }catch(Exception e){
+            System.err.println("9 : transfer ownerhsip : fail");
+            System.err.println(e);
+        }
+        //user3 in domain2 try to access domain
+        //domain2 root try to access domain
         //TODO : Romain
         throw new UnsupportedOperationException("test scenario not implemented yet");
     }

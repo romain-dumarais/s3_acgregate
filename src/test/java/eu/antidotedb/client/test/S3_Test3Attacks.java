@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.antidotedb.client.test;
 
-import eu.antidotedb.client.decision.S3DecisionProcedure;
 import org.junit.Test;
 
 /**
@@ -16,7 +10,7 @@ import org.junit.Test;
 public class S3_Test3Attacks extends S3Test{
     
     public S3_Test3Attacks() {
-        super("bucketTestS3", false, new S3DecisionProcedure());
+        super(false);
     }
     
     /**

@@ -1,21 +1,14 @@
 package eu.antidotedb.client.test;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.AccessMonitor;
 import eu.antidotedb.client.AntidoteConfigManager;
 import eu.antidotedb.client.Bucket;
-import eu.antidotedb.client.CrdtMap;
 import eu.antidotedb.client.CrdtMapDynamic;
-import eu.antidotedb.client.CrdtRegister;
 import eu.antidotedb.client.CrdtSet;
 import eu.antidotedb.client.MapRef;
-import eu.antidotedb.client.S3AccessMonitor;
 import eu.antidotedb.client.S3Client;
-import eu.antidotedb.client.SecureAntidoteClient;
 import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
-import eu.antidotedb.client.decision.DecisionProcedure;
-import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.transformer.CountingTransformer;
 import eu.antidotedb.client.transformer.LogTransformer;
 import eu.antidotedb.client.transformer.TransformerFactory;
@@ -35,7 +28,7 @@ public abstract class S3Test {
     final ByteString admin=ByteString.copyFromUtf8("admin");
     final ByteString user1=ByteString.copyFromUtf8("user1");
     final ByteString user2=ByteString.copyFromUtf8("user2");
-
+    
     final CrdtSet<String> object1;
     final CrdtMapDynamic<String> object2;
     

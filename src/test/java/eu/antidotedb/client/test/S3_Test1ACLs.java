@@ -5,17 +5,13 @@ import eu.antidotedb.client.AntidoteStaticTransaction;
 import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CounterRef;
 import eu.antidotedb.client.CrdtCounter;
-import eu.antidotedb.client.CrdtSet;
 import eu.antidotedb.client.IntegerRef;
 import eu.antidotedb.client.InteractiveTransaction;
-import eu.antidotedb.client.MapRef;
-import eu.antidotedb.client.RegisterRef;
 import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.SecuredInteractiveTransaction;
 import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.decision.ObjectInBucket;
 import eu.antidotedb.client.S3BucketACL;
 import eu.antidotedb.client.S3BucketPolicy;
 import eu.antidotedb.client.S3InteractiveTransaction;
@@ -282,9 +278,9 @@ public class S3_Test1ACLs extends S3Test {
         
         //admin can not write in object2
         try{
-            SecuredInteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
-            MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
-            object2Ref.counter("testCounter").increment(tx2, 5);
+            SecuredInteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);         
+            object2.counter("testInteger").increment(1); //add field 2 : Integer
+            object2.push(tx2);
             tx2.commitTransaction();
             System.err.println("3 : admin unauthorized write : fail");
         }catch(AccessControlException e){
