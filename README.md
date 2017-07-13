@@ -4,7 +4,7 @@ Antidote Access Control implementation
 ! CAUTION : WORK IN PROGRESS !
 
 This is an implementation of an Access Control System for Antidote, based on S3 Access Control model.
-It is based from Mathias Weber implementation of ACGreGate Access Control model for geo-replicated databases.
+It is implemented upon Mathias Weber implementation of ACGreGate model (Access Control for geo-replicated Gateway).
 
 You can find the JAVA client on the repository of the SyncFree project : https://github.com/SyncFree/antidote-java-client
 
@@ -19,7 +19,7 @@ You can download this Access Control System by running
 
 		git clone https://github.com/romain-dumarais/antidote-java-client/git
 		
-To use it you have to start an Antidote node by cloning Antidote data base and run in with : 
+To use it you have to start a local Antidote node by cloning Antidote data base and run in with : 
 
 		git clone https://github.com/SyncFree/antidote.git
 		cd antidote
@@ -32,7 +32,18 @@ In your favorite IDE you can add these librairies to the Java Client, to use the
 
 Create an instance of S3Client to start & commit transaction.
 The data storage is partitioned into "domains", that can not intersect.
-To initialise the domain, use loginAsRoot function in the S3Client.
+
+#### S3Client ####
+
+- startTransaction(ByteString user, ByteString domain, Object userData) : starts an interactive transaction
+- createStaticTransaction(ByteString user, ByteString domain, Object userData) : starts an Antidote static transaction
+- noTransaction(ByteString user, ByteString domain, Object userData) : performs database operations without a transaction context.
+- loginAsRoot() : use root credentials to initialize a domain and manage users
+
+#### Managing Resources ####
+
+find the API and the documentation for managing resources [here](docs/README.md)
+
 
 Basic features
 -----------
@@ -44,4 +55,8 @@ Basic features
 	- bucketACL
 	- bucketPolicy
 	- userPolicy
+
+These 4 resources can be managed by admin users as specified in their Policy.
+
+
 
