@@ -4,9 +4,16 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.client.AccessMonitor;
 import eu.antidotedb.client.AntidoteConfigManager;
 import eu.antidotedb.client.Bucket;
+import eu.antidotedb.client.CrdtMap;
+import eu.antidotedb.client.CrdtMapDynamic;
+import eu.antidotedb.client.CrdtRegister;
+import eu.antidotedb.client.CrdtSet;
+import eu.antidotedb.client.MapRef;
 import eu.antidotedb.client.S3AccessMonitor;
 import eu.antidotedb.client.S3Client;
 import eu.antidotedb.client.SecureAntidoteClient;
+import eu.antidotedb.client.SetRef;
+import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.DecisionProcedure;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.transformer.CountingTransformer;
@@ -28,6 +35,9 @@ public abstract class S3Test {
     final ByteString admin=ByteString.copyFromUtf8("admin");
     final ByteString user1=ByteString.copyFromUtf8("user1");
     final ByteString user2=ByteString.copyFromUtf8("user2");
+
+    final CrdtSet<String> object1;
+    final CrdtMapDynamic<String> object2;
     
     /**
      * 
@@ -45,8 +55,11 @@ public abstract class S3Test {
         // load host config from xml file ...
         AntidoteConfigManager antidoteConfigManager = new AntidoteConfigManager();
         antidoteClient = new S3Client(transformers, antidoteConfigManager.getConfigHosts());
-        
         bucket1 = Bucket.create("bucketTestS3");
+        SetRef<String> object1Ref = bucket1.set("object1TestS3", ValueCoder.utf8String); // orset
+        MapRef<String> object2Ref = bucket1.map_g("object2TestS3"); // grow-only Map
+        object1 = object1Ref.toMutable();
+        object2 = object2Ref.toMutable();
     }
     
 }
