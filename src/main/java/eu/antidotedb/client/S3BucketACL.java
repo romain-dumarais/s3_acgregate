@@ -22,7 +22,7 @@ public class S3BucketACL extends S3ACL{
         super(rights);
     }
     
-    public S3BucketACL readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
+    public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
         throw new UnsupportedOperationException("not ready yet");
         //Romain : TODO : the Key need to be linked to S3KeyLink anyhow
         //Policy policy = new Policy(bucket, SomeArbitraryKey, ValueCoder.utf8String);

@@ -2,6 +2,7 @@ package eu.antidotedb.client;
 
 import eu.antidotedb.client.S3Policy;
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,10 @@ public final class S3UserPolicy extends S3Policy {
     
     public S3UserPolicy(List<ByteString> groups, List<S3Statement> statements) {
         super(groups, statements);
+    }
+    
+    public S3UserPolicy(){
+        super(new ArrayList<ByteString>(), new ArrayList<Statement>());
     }
     
     /**

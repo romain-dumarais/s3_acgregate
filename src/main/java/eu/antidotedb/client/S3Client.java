@@ -19,7 +19,7 @@ import java.util.List;
  * @author Romain from a model from mweber_ukl
  */
 public final class S3Client extends SecureAntidoteClient{
-    private S3AccessMonitor accessMonitor; //override the AccessMonitor
+    private final S3AccessMonitor accessMonitor = new S3AccessMonitor(new S3DecisionProcedure()); //override the AccessMonitor
     
     //BUILDERS
     public S3Client(Host... hosts) {
@@ -36,7 +36,6 @@ public final class S3Client extends SecureAntidoteClient{
 
     public S3Client(List<TransformerFactory> transformerFactories, List<Host> hosts) {
         List<TransformerFactory> factories = new ArrayList<>();
-        this.accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
         factories.add(this.accessMonitor);
         factories.add(new StaticInteractiveTransformer());
         factories.addAll(transformerFactories);
@@ -50,19 +49,19 @@ public final class S3Client extends SecureAntidoteClient{
     }
     
     //INTERACTIVE
-    public SecuredInteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
+    public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
         //TODO : Romain
         if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public SecuredInteractiveTransaction startTransaction(ByteString user, ByteString domain){
+    public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain){
         return startTransaction(user, domain, null);
     }
     
     //STATIC
     public SecuredStaticTransaction createStaticTransaction(ByteString user, ByteString domain, Object userData) {
-        //TODO : Romain
+        //TODO : Romain : S3StaticTransaction
         //return new SecuredStaticTransaction(this, accessMonitor, user, userData);
         if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
@@ -74,7 +73,7 @@ public final class S3Client extends SecureAntidoteClient{
     
     //NOT TRANSACTION
     public SecuredNoTransaction noTransaction(ByteString user, ByteString domain, Object userData) {
-        //TODO : Romain
+        //TODO : Romain : S3NoTransaction
         //return new SecuredNoTransaction(this, accessMonitor, user, userData);
         if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         throw new UnsupportedOperationException("not implemented yet");
