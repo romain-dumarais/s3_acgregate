@@ -115,7 +115,7 @@ public class S3_Test1ACLs extends S3Test {
         Set<String> emptypermissions =new HashSet<String>();
         try{
             S3DomainManager rootinterface = antidoteClient.loginAsRoot(domain);
-            SecuredInteractiveTransaction tx2 = rootinterface.startTransaction();
+            S3InteractiveTransaction tx2 = rootinterface.startTransaction();
             rootinterface.createUser(admin, tx2);
             rootinterface.createUser(user1, tx2);            
             tx2.commitTransaction();

@@ -1,5 +1,6 @@
 package eu.antidotedb.client.test;
 
+import com.google.protobuf.ByteString;
 import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.GMAP;
 import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.ORSET;
 import eu.antidotedb.client.Bucket;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 
 /**
@@ -556,10 +558,66 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("9 : transfer ownerhsip : fail");
             System.err.println(e);
         }
+        try{
+            S3DomainManager newdomainManager = antidoteClient.loginAsRoot(ByteString.copyFromUtf8("newdomain"));
+            S3InteractiveTransaction tx2 = newdomainManager.startTransaction();
+            newdomainManager.createUser(admin, tx2);
+            newdomainManager.createUser(ByteString.copyFromUtf8("user3"), tx2);            
+            tx2.commitTransaction();
+            System.out.println("9 : newdomain : success");
+        }catch(Exception e){
+            System.err.println("9 : newdomain : fail");
+            System.err.println(e);
+        }
         //user3 in domain2 try to access domain
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(ByteString.copyFromUtf8("user3"), domain);
+            object1.getValues();
+            tx3.commitTransaction();
+            System.err.println("9 : user3 (newdomain) fails to read in domain : fail");
+        }catch(AccessControlException e){
+            System.out.println("9 : user3 (newdomain) fails to read in domain : success");
+        }catch(Exception e){
+            System.err.println("9 : user3 (newdomain) fails to read in domain : fail");
+            System.err.println(e);
+        }
+        //admin from newdomain tries to get object1
+        try{
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, ByteString.copyFromUtf8("newdomain"));
+            object1.getValues();
+            tx4.commitTransaction();
+            System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
+        }catch(AccessControlException e){
+            System.out.println("9 : admin (newdomain) reads object1 (domain) : success");
+        }catch(Exception e){
+            System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
+            System.err.println(e);
+        }
+        Set<String> obj1NewDomain = null, obj1Domain = null;
         //domain2 root try to access domain
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
+        try{
+            S3DomainManager newdomainManager = antidoteClient.loginAsRoot(ByteString.copyFromUtf8("newdomain"));
+            S3InteractiveTransaction tx5 = newdomainManager.startTransaction();
+            obj1NewDomain = object1.getValues();
+            tx5.commitTransaction();
+            System.err.println("9 : newdomain roots tries to access object1 : conditional success");
+        }catch(Exception e){
+            System.err.println("9 : newdomain roots tries to access object1 : fail");
+            System.err.println(e);
+        }
+        try{
+            S3InteractiveTransaction tx6 = antidoteClient.startTransaction(admin, domain);
+            obj1Domain = object1.getValues();
+            tx6.commitTransaction();
+        }catch(Exception e){
+            System.err.println("9 : verifying transaction 5 : fail");
+            System.err.println(e);
+        }
+        if(obj1Domain!=null && obj1Domain.equals(obj1NewDomain)){
+            System.out.println("newdomain roots tries to access object1 : success");
+        }else{
+            System.err.println("newdomain roots tries to access object1 : fail");
+        }
     }
     
     /**
