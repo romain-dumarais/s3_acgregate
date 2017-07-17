@@ -32,11 +32,11 @@ public class S3AccessMonitor extends AccessMonitor{
     
     
     void assignBucketACLPermissions(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString user, Collection<ByteString> permissions) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
 
     void unsetDomain(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
     
 }

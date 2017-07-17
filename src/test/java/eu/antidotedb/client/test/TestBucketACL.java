@@ -57,7 +57,7 @@ public class TestBucketACL extends S3Test{
             int oldValue = counter.getValue();
             assertEquals(0, oldValue);
             counter.increment(5);
-            //counter.push(tx);
+            counter.push(tx);
             tx.commitTransaction();
             System.err.println("test2 failed : 'user' should not be able to commit");
         } catch (AccessControlException ace){

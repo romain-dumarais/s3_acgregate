@@ -35,14 +35,8 @@ public final class S3Client extends SecureAntidoteClient{
     }
 
     public S3Client(List<TransformerFactory> transformerFactories, List<Host> hosts) {
-        List<TransformerFactory> factories = new ArrayList<>();
-        factories.add(this.accessMonitor);
-        factories.add(new StaticInteractiveTransformer());
-        factories.addAll(transformerFactories);
-        super.init(factories, hosts);
-        //super(new S3DecisionProcedure(), transformerFactories, hosts);
+        super(new S3DecisionProcedure(), transformerFactories, hosts);
     }
-    
     
     public S3DomainManager loginAsRoot(ByteString domain){
         return new S3DomainManager(domain);

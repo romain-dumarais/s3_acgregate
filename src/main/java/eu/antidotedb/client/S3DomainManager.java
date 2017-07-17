@@ -46,7 +46,7 @@ public class S3DomainManager{
     
     //reduced API to start root transactions
     public S3InteractiveTransaction startTransaction(){
-        //TODO : Romain : start transaction with user ,= domain
+        //TODO : Romain : start transaction with user = domain
         throw new UnsupportedOperationException("not implemented yet");
     }
     

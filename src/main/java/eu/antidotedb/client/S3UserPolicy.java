@@ -16,7 +16,7 @@ public final class S3UserPolicy extends S3Policy {
     }
     
     public S3UserPolicy(){
-        super(new ArrayList<ByteString>(), new ArrayList<Statement>());
+        super(new ArrayList<ByteString>(), new ArrayList<S3Statement>());
     }
     
     /**

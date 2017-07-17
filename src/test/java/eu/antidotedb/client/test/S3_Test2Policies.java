@@ -630,6 +630,7 @@ public class S3_Test2Policies extends S3Test{
      * restricting spatial access of user2
      * access tests
      * restriction in policies are a String of instructions, but not arbitrary code
+     * more accurate spatial tests are coming
      */
     @Test
     public void scenario_10(){
