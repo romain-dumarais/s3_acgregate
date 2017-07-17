@@ -26,13 +26,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test Class to implement scenarii 1 to 4
+ * Test Class to implement scenarios 1 to 4
  * @author Romain
  */
 public class S3_Test1ACLs extends S3Test {
     
     public S3_Test1ACLs() {
-        super(false);
+        super();
     }
     
     

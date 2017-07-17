@@ -14,12 +14,13 @@ import eu.antidotedb.client.transformer.LogTransformer;
 import eu.antidotedb.client.transformer.TransformerFactory;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Test;
 
 /**
  *
  * @author Romain
  */
-public abstract class S3Test {
+public class S3Test {
     final boolean debugLog;
     final CountingTransformer messageCounter;
     final S3Client antidoteClient;
@@ -33,13 +34,10 @@ public abstract class S3Test {
     final CrdtMapDynamic<String> object2;
     
     /**
-     * 
-     * @param bucketKey name of the Bucket we will use
-     * @param debugLog have a debuglog ?
-     * @param decProc decision Procedure to use
+     * init fot other tests
      */
-    public S3Test(boolean debugLog){
-        this.debugLog = debugLog;
+    public S3Test(){
+        this.debugLog = true;
         List<TransformerFactory> transformers = new ArrayList<>();
         transformers.add(messageCounter = new CountingTransformer());
         if (debugLog) {
@@ -55,4 +53,29 @@ public abstract class S3Test {
         object2 = object2Ref.toMutable();
     }
     
+    /**
+     * helper for netbeans environment
+     */
+    @Test
+    public void initTests(){
+        System.out.println("launch tests");
+        S3_Test1ACLs test1 = new S3_Test1ACLs();
+        S3_Test2Policies test2 = new S3_Test2Policies();
+        S3_Test3Attacks test3 = new S3_Test3Attacks();
+        test1.scenario_0();
+        test1.scenario_1();
+        test1.scenario_2();
+        test1.scenario_3();
+        test1.scenario_4();
+        test2.scenario_5init();
+        test2.scenario_5();
+        test2.scenario_5bis();
+        test2.scenario_5ter();
+        test2.scenario_6();
+        test2.scenario_7();
+        test2.scenario_8();
+        test2.scenario_9();
+        test2.scenario_10();
+        test3.scenario_11();
+    }
 }

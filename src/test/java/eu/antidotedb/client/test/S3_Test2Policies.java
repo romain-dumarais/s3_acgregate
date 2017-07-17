@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import org.junit.Test;
 
 /**
- * Test Class to implement scenarii 5 to 10
+ * Test Class to implement scenarios 5 to 10
  * @author Romain
  */
 public class S3_Test2Policies extends S3Test{
@@ -38,32 +38,11 @@ public class S3_Test2Policies extends S3Test{
     final Bucket<String> bucket2;
     
     public S3_Test2Policies() {
-        super(false);
+        super();
         this.bucket2 = Bucket.create("bucketTestS3");
         this.object3 = bucket2.set("object1TestS3", ValueCoder.utf8String).toMutable();
     }
     
-        /*TODO : Romain : remove MATOS
-    try{
-            SecuredInteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
-    
-            object1.add("test 1 field 1");
-            object1.add("test 1 field 2");
-            object1.push(tx1);
-            
-            object2.register("testRegister",ValueCoder.utf8String).set("field1:testRegister");//add field 1 : register
-            object2.counter("testInteger").increment(1);
-            object2.push(tx1);
-    
-            tx1.commitTransaction();
-            System.out.println("2 : user1 ACL : success");
-        }catch(AccessControlException e){
-            System.out.println("2 : user1 ACL : success");
-        }catch(Exception e){
-            System.err.println("2 : user1 ACL : fail");
-            System.err.println(e);
-    }
-*/
     /**
      * TODO : Romain : initializes ACLs, 2 users, 1 bucket with 2 objects
      */

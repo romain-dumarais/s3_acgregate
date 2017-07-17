@@ -82,47 +82,47 @@ public final class S3Client extends SecureAntidoteClient{
     
     @Override
     public InteractiveTransaction startTransaction() {
-        throw new IllegalStateException("Currently active user and domain required!");
+        throw new AccessControlException("Currently active user and domain required!");
     }
 
     @Override
     public SecuredInteractiveTransaction startTransaction(ByteString user, Object userData) {
-        throw new IllegalStateException("Currently active domain required!");
+        throw new AccessControlException("Currently active domain required!");
     }
 
     @Override
     public SecuredInteractiveTransaction startTransaction(ByteString user) {
-        throw new IllegalStateException("Currently active domain required!");
+        throw new AccessControlException("Currently active domain required!");
     }
 
     @Override
     public AntidoteStaticTransaction createStaticTransaction() {
-        throw new IllegalStateException("Currently active user and domain required!");
+        throw new AccessControlException("Currently active user and domain required!");
     }
 
     @Override
     public SecuredStaticTransaction createStaticTransaction(ByteString user, Object userData) {
-        throw new IllegalStateException("Currently active domain required!");
+        throw new AccessControlException("Currently active domain required!");
     }
 
     @Override
     public SecuredStaticTransaction createStaticTransaction(ByteString user) {
-        throw new IllegalStateException("Currently active domain required!");
+        throw new AccessControlException("Currently active domain required!");
     }
 
     @Override
     public NoTransaction noTransaction() {
-        throw new IllegalStateException("Currently active user required!");
+        throw new AccessControlException("Currently active user required!");
     }
 
     @Override
     public SecuredNoTransaction noTransaction(ByteString user, Object userData) {
-        throw new IllegalStateException("Currently active user and domain required!");
+        throw new AccessControlException("Currently active user and domain required!");
     }
 
     @Override
     public SecuredNoTransaction noTransaction(ByteString user) {
-        throw new IllegalStateException("Currently active user and domain required!");
+        throw new AccessControlException("Currently active user and domain required!");
     }
     
 }

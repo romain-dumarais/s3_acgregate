@@ -10,7 +10,7 @@ import org.junit.Test;
 public class S3_Test3Attacks extends S3Test{
     
     public S3_Test3Attacks() {
-        super(false);
+        super();
     }
     
     /**
