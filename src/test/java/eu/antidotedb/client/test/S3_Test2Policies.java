@@ -17,11 +17,16 @@ import eu.antidotedb.client.S3Statement;
 import eu.antidotedb.client.S3UserPolicy;
 import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.AccessControlException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Test;
 
 /**
@@ -621,14 +626,105 @@ public class S3_Test2Policies extends S3Test{
     }
     
     /**
-     * create complex policies, restricting temporal access of user 1, 
+     * restricting temporal access of user 1, 
      * restricting spatial access of user2
      * access tests
+     * restriction in policies are a String of instructions, but not arbitrary code
      */
     @Test
     public void scenario_10(){
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
+        String temporalrestriction = "java.time.LocalTime:now():080000:170000";
+        String iprestriction ="java.net.InetAddress:getLocalHost():127.0.0.1";
+        //resetACL
+        try{
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            HashMap<String, String> permissions;
+            permissions = new HashMap<>();
+            permissions.put("admin","writeACL");
+            permissions.put("user1", "default");
+            permissions.put("user2","default");
+            S3ObjectACL resetObjACL = new S3ObjectACL(permissions);
+            S3BucketACL resetBuckACL = new S3BucketACL(permissions);
+            resetObjACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
+            resetObjACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
+            resetBuckACL.assign(tx1, bucket1.getName());
+            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), new ArrayList<>());
+            bucketPolicy.assignPolicy(tx1, bucket1.getName());
+            //restricting temporal access of user 1
+            ArrayList<S3Statement> statement1 = new ArrayList<>();
+            statement1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), bucket1.getName(), temporalrestriction));
+            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(), statement1);
+            user1Policy.assignPolicy(tx1, user1);
+            //restricting spatial access of user 2
+            ArrayList<S3Statement> statement2 = new ArrayList<>();
+            statement2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList("*"), bucket1.getName(), iprestriction));
+            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statement2);
+            user2Policy.assignPolicy(tx1, user2);
+            tx1.commitTransaction();
+            System.out.println("10 : reset ACL, retrict policies : success");
+        }catch(Exception e){
+            System.err.println("10 : reset ACL, retrict policies : fail");
+            System.err.println(e);
+        }
+        
+        int localTestHour = LocalDateTime.now().getHour();
+        InetAddress localTestIP = null;
+        InetAddress testIP = null;
+        try {
+             localTestIP = InetAddress.getLocalHost();
+             testIP = InetAddress.getByName("localhost");
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(S3_Test2Policies.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("10 : get Test IP address : fail");
+        }
+        //test temporal restriction
+        if(localTestHour>=8 && localTestHour<17){
+            try{
+                S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+                object1.getValues();
+                tx2.commitTransaction();
+                System.out.println("10 : access from time restriction : success");
+            }catch(Exception e){
+                System.err.println("10 : access from time restriction : fail");
+                System.err.println(e);
+            }
+        }else{
+            try{
+                S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+                object1.getValues();
+                tx2.commitTransaction();
+                System.out.println("10 : access outside time restriction : fail");
+            }catch(AccessControlException e){
+                System.out.println("10 : access outside time restriction : success");
+            }catch(Exception e){
+                System.err.println("10 : access outside time restriction : fail");
+                System.err.println(e);
+            }
+        }
+        //test spatial restriction
+        if(localTestIP !=null && localTestIP.equals(testIP)){
+            try{
+                S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user2, domain);
+                object1.getValues();
+                tx2.commitTransaction();
+                System.out.println("10 : access from IP restriction : success");
+            }catch(Exception e){
+                System.err.println("10 : access from IP restriction : fail");
+                System.err.println(e);
+            }
+        }else{
+            try{
+                S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user2, domain);
+                object1.getValues();
+                tx2.commitTransaction();
+                System.out.println("10 : access outside IP restriction : fail");
+            }catch(AccessControlException e){
+                System.out.println("10 : access outside IP restriction : success");
+            }catch(Exception e){
+                System.err.println("10 : access outside IP restriction : fail");
+                System.err.println(e);
+            }
+        }
     }
     
 }
