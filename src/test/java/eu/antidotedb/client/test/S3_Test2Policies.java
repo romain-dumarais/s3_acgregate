@@ -476,16 +476,13 @@ public class S3_Test2Policies extends S3Test{
             user1Policy.assignPolicy(tx1, user1);
             user1Policy.assignPolicy(tx1, user2);
             
-            HashMap<String, String> readPermissions, restrictedPermissions;
-            readPermissions = new HashMap<>(); restrictedPermissions = new HashMap<>();
-            readPermissions.put("admin","writeACL");
-            readPermissions.put("user1","default");
-            readPermissions.put("user2","default");
-            restrictedPermissions.put("admin","writeACL");
-            restrictedPermissions.put("user1","default");
-            restrictedPermissions.put("user2","default");
-            S3ObjectACL objectACL = new S3ObjectACL(readPermissions);
-            S3BucketACL bucketACL = new S3BucketACL(restrictedPermissions);
+            HashMap<String, String> defaultPermissions;
+            defaultPermissions = new HashMap<>();
+            defaultPermissions.put("admin","writeACL");
+            defaultPermissions.put("user1","default");
+            defaultPermissions.put("user2","default");
+            S3ObjectACL objectACL = new S3ObjectACL(defaultPermissions);
+            S3BucketACL bucketACL = new S3BucketACL(defaultPermissions);
             objectACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
             objectACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
             bucketACL.assign(tx1, bucket1.getName());
@@ -611,6 +608,7 @@ public class S3_Test2Policies extends S3Test{
      * restriction in policies are a String of instructions, but not arbitrary code
      * more accurate spatial tests are coming
      */
+    TODO : Romain : test application-layer function name of operation in Policies
     @Test
     public void scenario_10(){
         String temporalrestriction = "java.time.LocalTime:now():080000:170000";

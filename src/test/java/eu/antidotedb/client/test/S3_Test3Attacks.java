@@ -1,5 +1,22 @@
 package eu.antidotedb.client.test;
 
+import com.google.protobuf.ByteString;
+import eu.antidotedb.client.Bucket;
+import eu.antidotedb.client.CrdtMVRegister;
+import eu.antidotedb.client.MVRegisterRef;
+import eu.antidotedb.client.RegisterRef;
+import eu.antidotedb.client.S3BucketACL;
+import eu.antidotedb.client.S3BucketPolicy;
+import eu.antidotedb.client.S3DomainManager;
+import eu.antidotedb.client.S3InteractiveTransaction;
+import eu.antidotedb.client.S3ObjectACL;
+import eu.antidotedb.client.S3Policy;
+import eu.antidotedb.client.S3Statement;
+import eu.antidotedb.client.S3UserPolicy;
+import eu.antidotedb.client.decision.AccessControlException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import org.junit.Test;
 
 /**
@@ -14,15 +31,110 @@ public class S3_Test3Attacks extends S3Test{
     }
     
     /**
-     * admin creates a security bucket for a new bucket name. -> should fail
-     * admin writes its policy to access any object
-     * I create a new bucket
-     * admin fails to access its objects
-     * admin fails to write the policies of the bucket
+     * admin fails to write hadcoded object1 acl in hard coded security bucket
+     * admin fails to create a user3 Policy in userbucket
+     * access tests
      */
     @Test
     public void scenario_11(){
+        //set situation
+        try{
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
+            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+            S3Statement user1Statement = new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), bucket1.getName(), "");
+            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(user1Statement));
+            bucketPolicy.assignPolicy(tx1, bucket1.getName());
+            user1Policy.assignPolicy(tx1, user1);
+            user2Policy.assignPolicy(tx1, user2);
+            
+            HashMap<String, String> defaultPermissions;
+            defaultPermissions = new HashMap<>();
+            defaultPermissions.put("admin","writeACL");
+            defaultPermissions.put("user1","default");
+            defaultPermissions.put("user2","default");
+            S3ObjectACL objectACL = new S3ObjectACL(defaultPermissions);
+            S3BucketACL bucketACL = new S3BucketACL(defaultPermissions);
+            objectACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
+            objectACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
+            bucketACL.assign(tx1, bucket1.getName());
+            tx1.commitTransaction();
+            System.out.println("11: admin reset all resources : success");
+        }catch(Exception e){
+            System.err.println("11: admin reset all resources : fail");
+        }
+        S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+        ByteString mappingSecurityBucket = domainManager.getsecurityBucket(bucket1.getName());
+        ByteString mappingObjectACL = domainManager.getobjectACL(object1.getRef().getKey(),user1);
+        //admin fails to write hadcoded object1 acl in hard coded security bucket
+        try{
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
+            Bucket<String> securityBucket = Bucket.create(mappingSecurityBucket.toStringUtf8());
+            MVRegisterRef<String> aclObj1Ref = securityBucket.multiValueRegister(mappingObjectACL.toStringUtf8());
+            CrdtMVRegister<String> aclobject1 = aclObj1Ref.toMutable();
+            aclobject1.set("write");
+            aclobject1.push(tx2);
+            tx2.commitTransaction();
+            System.err.println("11: admin fails to bypass ACL write check : fail");
+        }catch(AccessControlException e){
+            System.out.println("11: admin fails to bypass ACL write check : conditional success");
+        }catch(Exception e){
+            System.err.println("11: admin fails to bypass ACL write check : fail");
+            System.err.println(e);
+        }
+        //test previous update
+        try{
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
+            object1.add("test 11 transaction 3 : unauthorized field");
+            object1.push(tx3);
+            tx3.commitTransaction();
+            System.err.println("11: admin fails to bypass ACL write check : fail");
+        }catch(AccessControlException e){
+            System.out.println("11: admin fails to bypass ACL write check : success");
+        }catch(Exception e){
+            System.err.println("11: access from time restriction : fail");
+            System.err.println(e);
+        }
+        ByteString mappingUserBucket = domainManager.getuserBucket();
+        ByteString mappingUserPolicy = domainManager.getuserPolicy(user1);
+        //admin fails to create a user3 Policy in userbucket
+        try{
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, domain);
+            Bucket<String> userBucket = Bucket.create(mappingUserBucket.toStringUtf8());
+            MVRegisterRef<String> user1PolicyRef = userBucket.multiValueRegister(mappingUserPolicy.toStringUtf8());
+            CrdtMVRegister<String> aclobject1 = user1PolicyRef.toMutable();
+            //S3Statement fullrights = new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("object1TestS3"), "");
+            String fullrights = "\"Statement\": [{\n    \"Sid\": \"1\",\n    \"Effect\": \"Allow\",\n    \"Principal\":[\""+user1.toStringUtf8()+"\"],\n    \"Action\":\"*\",\n    \"Resource\":{\"object\": ["+object1.getRef().getKey().toStringUtf8()+"]}\n  }]";
+            aclobject1.set(fullrights);
+            aclobject1.push(tx4);
+            tx4.commitTransaction();
+            System.err.println("11: admin fails to bypass Policy write check : fail");
+        }catch(AccessControlException e){
+            System.out.println("11: admin fails to bypass Policy write check : conditional success");
+        }catch(Exception e){
+            System.err.println("11: admin fails to bypass Policy write check : fail");
+            System.err.println(e);
+        }
+        //test previous update
+        try{
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user1, domain);
+            object1.add("test 11 transaction 5 : unauthorized field");
+            object1.push(tx5);
+            tx5.commitTransaction();
+            System.err.println("11: admin fails to bypass Policy write check : fail");
+        }catch(AccessControlException e){
+            System.out.println("11: admin fails to bypass Policy write check : success");
+        }catch(Exception e){
+            System.err.println("11: access from time restriction : fail");
+            System.err.println(e);
+        }
+    }
+    /**
+     * creates several threads with a client each, trying to access and modify ACLs & Policies concurrently for 1 Antidote ncde
+     */
+    @Test
+    public void scenario_12(){
         //TODO : Romain
-        throw new UnsupportedOperationException("test scenarion not implemented yet");
+        throw new UnsupportedOperationException("test scenario not implemented yet");
     }
 }
