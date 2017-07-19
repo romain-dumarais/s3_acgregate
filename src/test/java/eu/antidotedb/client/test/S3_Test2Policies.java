@@ -608,7 +608,6 @@ public class S3_Test2Policies extends S3Test{
      * restriction in policies are a String of instructions, but not arbitrary code
      * more accurate spatial tests are coming
      */
-    TODO : Romain : test application-layer function name of operation in Policies
     @Test
     public void scenario_10(){
         String temporalrestriction = "java.time.LocalTime:now():080000:170000";

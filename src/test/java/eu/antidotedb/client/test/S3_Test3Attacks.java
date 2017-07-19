@@ -3,10 +3,12 @@ package eu.antidotedb.client.test;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CrdtMVRegister;
+import eu.antidotedb.client.Host;
 import eu.antidotedb.client.MVRegisterRef;
 import eu.antidotedb.client.RegisterRef;
 import eu.antidotedb.client.S3BucketACL;
 import eu.antidotedb.client.S3BucketPolicy;
+import eu.antidotedb.client.S3Client;
 import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.S3ObjectACL;
@@ -129,12 +131,36 @@ public class S3_Test3Attacks extends S3Test{
             System.err.println(e);
         }
     }
+    
     /**
      * creates several threads with a client each, trying to access and modify ACLs & Policies concurrently for 1 Antidote ncde
      */
     @Test
     public void scenario_12(){
-        //TODO : Romain
-        throw new UnsupportedOperationException("test scenario not implemented yet");
+        try{
+            S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+            S3InteractiveTransaction tx1 = domainManager.startTransaction();
+            for(int i=0; i<5;i++){
+                ByteString user = ByteString.copyFromUtf8("user"+i);
+                domainManager.createUser(user, tx1);
+                ArrayList<S3Statement> statements = new ArrayList<>();
+                statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList("*"), bucket1.getName(), ""));
+                S3Policy userPolicy = new S3UserPolicy(new ArrayList<>(), statements);
+                userPolicy.assignPolicy(tx1, user);
+            }
+            tx1.commitTransaction();
+        }catch(Exception e){
+            System.err.println("12: set situation : fail");
+        }
+        try{
+            Host commonHost = new Host("localhost", 8087);
+            for(int i=0; i<5;i++){
+                ByteString user = ByteString.copyFromUtf8("user"+i);
+                TestThread testThread = new TestThread(user, commonHost);
+                testThread.run();
+            }
+        }catch(Exception e){
+            System.err.println("12: several users : fail");
+        }
     }
 }
