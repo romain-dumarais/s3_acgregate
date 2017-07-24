@@ -15,6 +15,8 @@ You can download the Java Client by running
 
 		git clone https://github.com/SyncFree/antidote-java-client/git
 
+The ACGreGate model implementation is not publicly available yet. Please feel free to contact me for further informations.
+
 You can download this Access Control System by running 
 
 		git clone https://github.com/romain-dumarais/antidote-java-client/git
