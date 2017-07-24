@@ -19,6 +19,7 @@ import eu.antidotedb.client.decision.AccessControlException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -160,7 +161,36 @@ public class S3_Test3Attacks extends S3Test{
                 testThread.run();
             }
         }catch(Exception e){
-            System.err.println("12: several users : fail");
+            System.err.println("12: several users write : fail");
         }
+        S3BucketPolicy buckPol = new S3BucketPolicy(), buckPolVerif = new S3BucketPolicy();
+        S3BucketACL buckACL = new S3BucketACL();
+        S3UserPolicy userPol = new S3UserPolicy(), userPolVerif = new S3UserPolicy();
+        S3ObjectACL objACL1 = new S3ObjectACL();
+        S3ObjectACL objACL2 = new S3ObjectACL();
+        try{
+            S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+            S3InteractiveTransaction tx2 = domainManager.startTransaction();
+            
+            buckPol.readPolicy(tx2, bucket1.getName());
+            
+            buckACL.readForUser(tx2, bucket1.getName(), user2);
+            
+            userPol.readPolicy(tx2, ByteString.copyFromUtf8("user3"));
+            
+            objACL1.readForUser(tx2, bucket1.getName(), object1.getRef().getKey(), ByteString.copyFromUtf8("user4"));
+            objACL2.readForUser(tx2, bucket1.getName(), object2.getRef().getKey(), ByteString.copyFromUtf8("user4"));
+           
+            tx2.commitTransaction();
+        }catch(Exception e){
+            System.err.println("12: read resources : fail");
+        }
+        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("object2TestS3"), ""));
+        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), Arrays.asList("object2TestS3"), ""));
+        assertEquals(buckPol,buckPolVerif);
+        assertEquals(buckACL.getRight("user2"), "none");
+        assertEquals(userPol, userPolVerif);
+        assertEquals(objACL1.getRight("user4"), "none");
+        assertEquals(objACL1.getRight("user4"), "write");
     }
 }
