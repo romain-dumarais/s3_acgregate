@@ -11,9 +11,8 @@ import java.util.Map;
 
 /**
  * This class extends the Access Monitor transformer to S3 Access Control smeantics
+ * the differences in the management of user/bucket/object ACL/policies are hard coded
  * @author Romain
- * TODO : Romain : everything
- * TODO : Romain : how get AccessResources ?
  */
 public class S3AccessMonitor extends AccessMonitor{
     private final S3KeyLink keyLink=new S3KeyLink();
@@ -22,6 +21,10 @@ public class S3AccessMonitor extends AccessMonitor{
     
     public S3AccessMonitor(S3DecisionProcedure proc) {
         super(proc);
+    }
+    
+    void setDomain(Connection connection, ByteString domain) {
+        domainMapping.put(connection,domain); //TODO : Romain
     }
     
     void unsetDomain(Connection connection) {
@@ -38,7 +41,7 @@ public class S3AccessMonitor extends AccessMonitor{
     there any explicit deny ? Any explicit allow ?
     If needed, requests a group Policy
     */
-    //TODO : Romain : hard code difference in procedure between read/write bucket/object/user Policy/ACL ?
+    
     
     void assignObjectACL(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions){
         //check
@@ -99,4 +102,5 @@ public class S3AccessMonitor extends AccessMonitor{
     void assignPermissions(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString txid, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
+
 }

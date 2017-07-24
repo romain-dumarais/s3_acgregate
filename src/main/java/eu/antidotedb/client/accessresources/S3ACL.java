@@ -1,4 +1,4 @@
-package eu.antidotedb.client;
+package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
@@ -19,7 +19,6 @@ public abstract class S3ACL{
         this.permissions = new HashMap<>();
     }
     
-    
     public S3ACL(Map<String, String> rights){
         this.permissions = new HashMap<>();
         for(String user:rights.keySet()){
@@ -29,6 +28,10 @@ public abstract class S3ACL{
     
     public String getRight(String userid){
         return decodeRight(this.permissions.get(ByteString.copyFromUtf8(userid)));
+    }
+    
+    public void setRight(String userID, String right){
+        this.permissions.put(ByteString.copyFromUtf8(userID), encodeRight(right));
     }
     
     /**
@@ -103,12 +106,6 @@ public abstract class S3ACL{
         }
         return result;
     }
-    
-    
-    public void setRight(String userID, String right){
-        this.permissions.put(ByteString.copyFromUtf8(userID), encodeRight(right));
-    }
-    
     
     public boolean explicitAllow(/*all the needed args*/){
         //TODO : Romain

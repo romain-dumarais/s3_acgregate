@@ -2,11 +2,8 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.decision.DecisionProcedure;
-import eu.antidotedb.client.transformer.StaticInteractiveTransformer;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.transformer.TransformerFactory;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +43,11 @@ public final class S3Client extends SecureAntidoteClient{
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
         //TODO : Romain
         if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
-        throw new UnsupportedOperationException("not implemented yet");
+        S3InteractiveTransaction tx = new S3InteractiveTransaction(this, accessMonitor);
+        accessMonitor.setCurrentUser(tx.connection, user);
+        accessMonitor.setDomain(tx.connection, domain);
+        if (userData != null) {accessMonitor.setUserData(tx.connection, userData);}
+        return tx;
     }
     
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain){

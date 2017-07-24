@@ -12,12 +12,12 @@ import eu.antidotedb.client.SecuredInteractiveTransaction;
 import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.S3BucketACL;
-import eu.antidotedb.client.S3BucketPolicy;
+import eu.antidotedb.client.accessresources.S3BucketACL;
+import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.S3InteractiveTransaction;
-import eu.antidotedb.client.S3ObjectACL;
-import eu.antidotedb.client.S3Policy;
-import eu.antidotedb.client.S3UserPolicy;
+import eu.antidotedb.client.accessresources.S3ObjectACL;
+import eu.antidotedb.client.accessresources.S3Policy;
+import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,7 +92,7 @@ public class S3_Test1ACLs extends S3Test {
         //create objects : give them keys & values of described tests
         try {
             S3DomainManager rootinterface = antidoteClient.loginAsRoot(domain);
-            SecuredInteractiveTransaction tx1 = rootinterface.startTransaction();
+            S3InteractiveTransaction tx1 = rootinterface.startTransaction();
             
             rootinterface.createBucket(bucket1.getName(), tx1);
             object1.add("test 1 field 1");
@@ -189,7 +189,7 @@ public class S3_Test1ACLs extends S3Test {
         try{
             
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            SecuredInteractiveTransaction tx1 = domainManager.startTransaction();
+            S3InteractiveTransaction tx1 = domainManager.startTransaction();
             
             
             HashMap<String, String> permissions1, permissions2;
@@ -255,7 +255,7 @@ public class S3_Test1ACLs extends S3Test {
  
         //admin sets ACLs
         try{
-            SecuredInteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             
             HashMap<String, String> permissions1, permissions2;
             permissions1 = new HashMap<>(); permissions2 = new HashMap<>();
@@ -292,7 +292,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //user1 can not read object1
         try{
-            SecuredInteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
             object1.getValues();
             tx3.commitTransaction();
             System.err.println("3 : user1 : fail");
@@ -305,7 +305,7 @@ public class S3_Test1ACLs extends S3Test {
         
     //user1 write object2 and object ACL of object 2
     try{
-            SecuredInteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
             
             object2.register("testRegister",ValueCoder.utf8String).set("field1: updated in test 3 transaction 4");
             object2.push(tx4);
@@ -324,7 +324,7 @@ public class S3_Test1ACLs extends S3Test {
     
     //admin writes object 2
     try{
-            SecuredInteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
 
             object2.register("testRegister",ValueCoder.utf8String).set("field1: updated in test 3 transaction 5");
             object2.push(tx5);
@@ -338,7 +338,7 @@ public class S3_Test1ACLs extends S3Test {
    
     //user1 fails to write object2
     try{
-            SecuredInteractiveTransaction tx6 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx6 = antidoteClient.startTransaction(user1, domain);
             object2.register("testRegister",ValueCoder.utf8String).set("field1: updated in test 3 transaction 6");
             object2.push(tx6);
             tx6.commitTransaction();
@@ -360,7 +360,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //user fails to grant itself permissions
         try{
-            SecuredInteractiveTransaction tx1 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(user1, domain);
             S3ObjectACL.assignForUser(tx1, bucket1.getName(), object1.getRef().getKey(), user1, "write");
             tx1.commitTransaction();
             System.err.println("4 : self-granting rights : fail");
@@ -375,7 +375,7 @@ public class S3_Test1ACLs extends S3Test {
         object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); 
         //verify ACL state
         try{
-            SecuredInteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
             
             object1ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), admin);
             object1ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), user1);
@@ -396,7 +396,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //set ACL
         try{
-            SecuredInteractiveTransaction tx2bis = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx2bis = antidoteClient.startTransaction(admin, domain);
             object1ACL.setRight("admin", "writeACL");
             object1ACL.setRight("user1", "write");
             object2ACL.setRight("admin", "writeACL");
@@ -412,7 +412,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //prevent unauthorized then authorized write
         try{
-            SecuredInteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
             //write object1
             object1.add("test 4 transaction 3 : unauthorized");
             object1.push(tx3);
@@ -430,7 +430,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //prevent authorized then unauthorized write
         try{
-            SecuredInteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
             //write object2
             object2.register("testRegister",ValueCoder.utf8String).set("field1: unauthorized update in test 4 transaction 4");
             object2.push(tx4);
@@ -447,7 +447,7 @@ public class S3_Test1ACLs extends S3Test {
         }
         
         try{
-            SecuredInteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
             Set<String> readresult = object1.getValues();
             tx5.commitTransaction();
             if(!readresult.contains("test 4 transaction 4 : unauthorized")){System.out.println("4 : authorized + unauthorized write : verified success");}

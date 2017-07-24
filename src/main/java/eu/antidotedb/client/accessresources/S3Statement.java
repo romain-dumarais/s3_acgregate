@@ -1,4 +1,4 @@
-package eu.antidotedb.client;
+package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;

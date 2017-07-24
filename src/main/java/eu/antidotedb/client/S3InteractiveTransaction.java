@@ -23,19 +23,19 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
         accessMonitor.unsetDomain(connection);
     }
     
-    Collection<? extends ByteString> readObjectACLHelper(ByteString bucket, ByteString key, ByteString user){
+    protected Collection<? extends ByteString> readObjectACLHelper(ByteString bucket, ByteString key, ByteString user){
         return accessMonitor.readObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user);
     }
     
-    void objectACLAssignHelper(ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
+    protected void objectACLAssignHelper(ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
         accessMonitor.assignObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user, permissions);
     }
     
-    Collection<? extends ByteString>  readBucketACLHelper(ByteString bucket, ByteString userid) {
+    protected Collection<? extends ByteString>  readBucketACLHelper(ByteString bucket, ByteString userid) {
         return accessMonitor.readBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, userid);
     }
     
-    void bucketACLAssignHelper(ByteString user, ByteString bucket, Collection<ByteString> permissions) {
+    protected void bucketACLAssignHelper(ByteString user, ByteString bucket, Collection<ByteString> permissions) {
         accessMonitor.assignBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, user, permissions);
     }
 

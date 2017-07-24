@@ -1,6 +1,8 @@
-package eu.antidotedb.client;
+package eu.antidotedb.client.accessresources;
 
+import eu.antidotedb.client.accessresources.S3ACL;
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;

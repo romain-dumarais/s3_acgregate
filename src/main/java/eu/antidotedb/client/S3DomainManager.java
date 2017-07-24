@@ -18,7 +18,7 @@ public class S3DomainManager{
     S3DomainManager(ByteString domain) {
         this.domain = domain;
     }
-    //TODO : way to list the users ?
+    //TODO : Romain : a way to list the users 
     
     public void createBucket(ByteString bucketKey, SecuredInteractiveTransaction tx){
         //TODO : Romain

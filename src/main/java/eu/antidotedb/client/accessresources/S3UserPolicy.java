@@ -1,7 +1,9 @@
-package eu.antidotedb.client;
+package eu.antidotedb.client.accessresources;
 
-import eu.antidotedb.client.S3Policy;
+import eu.antidotedb.client.accessresources.S3Statement;
+import eu.antidotedb.client.accessresources.S3Policy;
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.ArrayList;
 import java.util.List;
 
