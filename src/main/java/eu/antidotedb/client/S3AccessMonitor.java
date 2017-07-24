@@ -3,6 +3,8 @@ package eu.antidotedb.client;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
+import eu.antidotedb.client.messages.AntidoteRequest;
+import eu.antidotedb.client.messages.AntidoteResponse;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,16 +38,65 @@ public class S3AccessMonitor extends AccessMonitor{
     there any explicit deny ? Any explicit allow ?
     If needed, requests a group Policy
     */
+    //TODO : Romain : hard code difference in procedure between read/write bucket/object/user Policy/ACL ?
     
+    void assignObjectACL(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions){
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
     
-    void assignBucketACLPermissions(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString user, Collection<ByteString> permissions) {
+    Collection<? extends ByteString> readObjectACL(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString key, ByteString user){
+        //check
+        //read
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    void assignBucketACL(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString user, Collection<ByteString> permissions) {
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    Collection<? extends ByteString> readBucketACL(SocketSender socketSender, Connection connection, ByteString descriptor, ByteString bucket, ByteString user){
+        //check
+        //read
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    void assignBucketPolicy(){
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    Collection<? extends ByteString> readBucketPolicy(){
+        //check
+        //read
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    void assignUserPolicy(){
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    Collection<? extends ByteString> readUserPolicy(){
+        //check
+        //read
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
 
-    //TODO : Romain : ?
+    /*
+    //TODO : Romain : i don't think it is a good idea
     Policy bucketACLPolicyCreator(ByteString bucket, ByteString userid) {
         Policy bucketACL = new Policy(this.keyLink.securityBucket(bucket),this.keyLink.bucketACL(bucket, userid),ValueCoder.utf8String);
         return bucketACL;
-    }
+    }*/
     
+    @Override
+    void assignPermissions(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString txid, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
 }

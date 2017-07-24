@@ -111,10 +111,12 @@ public abstract class S3ACL{
     
     
     public boolean explicitAllow(/*all the needed args*/){
+        //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }
     
     public boolean explicitDeny(/*all the needed args*/){
+        //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

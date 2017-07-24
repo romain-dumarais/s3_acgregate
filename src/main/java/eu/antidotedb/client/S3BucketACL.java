@@ -1,7 +1,7 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.decision.S3KeyLink;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,16 +25,23 @@ public class S3BucketACL extends S3ACL{
      * users rights not updated
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        Set<ByteString> content = tx.readBucketACLHelper(bucket, userid).read(tx, userid);
-        this.setRight(userid.toStringUtf8(), decodeRight(content));
+        Collection<? extends ByteString> policyValues = tx.readBucketACLHelper(bucket, userid);
+        Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
+        this.permissions.put(userid, res);
     }
     
     /**
-     * assigns a right to a user without touchng the others
+     * assigns a right to a user without touching the others
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
-        Set<ByteString> encodedPermissions = encodeRight(right).stream().collect(Collectors.toSet());
-        tx.bucketACLAssignHelper(userid, bucket, encodedPermissions);
+        tx.bucketACLAssignHelper(bucket, userid, encodeRight(right));
+    }
+    
+    /**
+     * assigns the current policy to a user without touching the others
+     */
+    public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
+        tx.bucketACLAssignHelper(bucket, userid, this.permissions.get(userid));
     }
     
     /**
@@ -42,13 +49,11 @@ public class S3BucketACL extends S3ACL{
       * This operation does not reduce nor modify any rights of unconsidered users
       * @param tx transaction used for the assigh operation
       * @param bucket bucket of the target object
-      * @param key key of the target object
       */
-    public void assign(SecuredInteractiveTransaction tx, ByteString bucket){
+    public void assign(S3InteractiveTransaction tx, ByteString bucket){
         Set<ByteString> users = this.permissions.keySet();
-        for(ByteString user:users){
-            //Policy policy = new Policy(bucket, key, ValueCoder.utf8String);
-            //policy.assign(tx, user, this.permissions.get(user));
-        }
+        users.stream().forEach((user) -> {
+            tx.bucketACLAssignHelper(user, bucket, this.permissions.get(user));
+        });
     }
 }
