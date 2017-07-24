@@ -1,12 +1,7 @@
 package eu.antidotedb.client;
 
-import eu.antidotedb.client.S3ACL;
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.Policy;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
-import eu.antidotedb.client.ValueCoder;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -14,6 +9,9 @@ import java.util.Set;
  * @author Romain
  */
 public class S3ObjectACL extends S3ACL{
+    
+    //TODO : static reader constructor
+    //TODO : all-users reader
     
     public S3ObjectACL(){
         super();
@@ -23,15 +21,8 @@ public class S3ObjectACL extends S3ACL{
         super(rights);
     }
     
-    //TODO : static reader constructor
-    //TODO : all-users reader
-    
     /**
      * reads the right for a user in the database. Other users rights are not updated.
-     * @param tx
-     * @param bucket
-     * @param key
-     * @param userid 
      */
     public void readForUser(SecuredInteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
         Policy policy = new Policy(bucket, key, ValueCoder.utf8String);
@@ -40,11 +31,6 @@ public class S3ObjectACL extends S3ACL{
 
     /**
      * assigns a certain right to a user. Does not modify the other users rights.
-     * @param tx
-     * @param bucket
-     * @param key
-     * @param userid
-     * @param right 
      */
     public static void assignForUser(SecuredInteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
         Policy policy = new Policy(bucket, key, ValueCoder.utf8String);

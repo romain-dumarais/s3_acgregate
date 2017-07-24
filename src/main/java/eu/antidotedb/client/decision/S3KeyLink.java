@@ -28,11 +28,11 @@ public class S3KeyLink {
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public ByteString objectACL(ByteString objectKey){
+    public ByteString objectACL(ByteString objectKey, ByteString user){
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public ByteString bucketACL(){
+    public ByteString bucketACL(ByteString bucketKey, ByteString user){
         throw new UnsupportedOperationException("not implemented yet");
     }
     

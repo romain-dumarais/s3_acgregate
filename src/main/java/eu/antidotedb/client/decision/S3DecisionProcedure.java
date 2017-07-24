@@ -16,8 +16,7 @@ public class S3DecisionProcedure implements DecisionProcedure {
     
     
     public S3DecisionProcedure(){
-        this.owner=ByteString.copyFromUtf8("owner");
-        this.userBucket=ByteString.copyFromUtf8(".owner_userBucket");
+        throw new AccessControlException("unsupported operation");
     }
     
     public S3DecisionProcedure(String ownerKey){
@@ -25,14 +24,6 @@ public class S3DecisionProcedure implements DecisionProcedure {
         this.userBucket=ByteString.copyFromUtf8("."+ownerKey+"_userBucket");
     }
 
-    /**
-     * TODO : Romain : S3 procedure
-     * owner has root rights
-     * @param object object to read
-     * @param op operation that is performed
-     * @param policies requestedPolicies to interpret
-     * @return {@code true} if the operation should be allowed, {@code false} otherwise
-     */
     @Override
     public boolean decideUpdate(AntidotePB.ApbBoundObject object, AntidotePB.ApbUpdateOperation op, Object userData, Map<String, Collection<ByteString>> policies) {
         //TODO : Romain : todo
@@ -46,14 +37,6 @@ public class S3DecisionProcedure implements DecisionProcedure {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    /**
-     * 
-     * @param bucket
-     * @param key
-     * @param userData
-     * @param policies
-     * @return 
-     */
     @Override
     public boolean decidePolicyAssign(ByteString bucket, ByteString key, Collection<ByteString> oldPolicy, Collection<ByteString> newPolicy, Object userData, Map<String, Collection<ByteString>> policies) {
         //TODO : Romain : todo
@@ -75,32 +58,14 @@ public class S3DecisionProcedure implements DecisionProcedure {
      */
     @Override
     public Map<String, ObjectInBucket> requestedPolicies(ByteString bucket, ByteString key) {
-        TreeMap<String, ObjectInBucket> requestedPolicies = new TreeMap<>();
+        /*TreeMap<String, ObjectInBucket> requestedPolicies = new TreeMap<>();
         ByteString aclBucket = getAclBucket(bucket);
         requestedPolicies.put("objectACL", new ObjectInBucket(aclBucket, key));
         requestedPolicies.put("bucketACL", new ObjectInBucket(bucket, ByteString.copyFromUtf8("policy")));
         requestedPolicies.put("bucketPolicy", new ObjectInBucket(bucket, key));
         requestedPolicies.put("userPolicy", new ObjectInBucket(this.userBucket, key));
-        return requestedPolicies;
-    }
-    
-    /**
-     * binds a bucket to its ACL bucket
-     * @param bucket bucket to link to its ACL bucket
-     * @return the Key of the ACL bucket
-     */
-    private ByteString getAclBucket(ByteString bucket) {
-        //TODO : Romain : binds with AccessMonitor
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    /**
-     * binds a data to its ACL key
-     * @param key datakey to bind
-     * @return aclKey key of the ACL object
-     */
-    private ByteString getAclKey(ByteString key){
-        //TODO : Romain : binds with AccessMonitor
+        return requestedPolicies;*/
+        //TODO : Romain : todo
         throw new UnsupportedOperationException("Not supported yet.");
     }
     

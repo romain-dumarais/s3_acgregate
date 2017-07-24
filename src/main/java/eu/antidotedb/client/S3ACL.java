@@ -11,47 +11,36 @@ import java.util.Set;
  * This class is just a handler to manage Policies from ACGregate
  *  it represents just ACL as set of permissions
  * @author Romain
- * TODO : everything
  */
 public abstract class S3ACL{
     protected Map<ByteString, Set<ByteString>> permissions;
     
-    //Romain : I would like to have methods to simply handle the setACL (==> that write the implied permissions)
     public S3ACL(){
-        this.permissions = new HashMap<ByteString, Set<ByteString>>();
+        this.permissions = new HashMap<>();
     }
     
     
     public S3ACL(Map<String, String> rights){
-        this.permissions = new HashMap<ByteString, Set<ByteString>>();
+        this.permissions = new HashMap<>();
         for(String user:rights.keySet()){
             this.permissions.put(ByteString.copyFromUtf8(user), encodeRight(rights.get(user)));
         }
     }
     
-    /*
-    @Override
-    public String toString(){
-        String acl="{ ";
-        Set<ByteString> users = this.permissions.keySet();
-        for(ByteString user:users){
-            acl.concat("["+user.toStringUtf8()+":"+decodeRight(this.permissions.get(user))+"], ");
-        }
-        acl.concat(" }");
-        return acl;
-    }*/
-    
     public String getRight(String userid){
         return decodeRight(this.permissions.get(ByteString.copyFromUtf8(userid)));
     }
+    
     /**
      * helper to translate a right to its format in ACL
-     * @param right
-     * @return set of ByteString for the right and the weaker rights
+     * @param right string in @code{"none","read","write","readACL","writeACL"}
+     * @return set of ByteString for the corresponding right and the weaker rights
      */
     public static Set<ByteString> encodeRight(String right){
         Set<ByteString> rights = new HashSet<>();
         switch(right){
+            case("default"):
+                break;
             case("none"):
                 rights.add(ByteString.copyFromUtf8("none"));
                 break;
@@ -84,8 +73,35 @@ public abstract class S3ACL{
     }
     
     public static String decodeRight(Set<ByteString> acl){
-        //may return a default right
-        throw new UnsupportedOperationException("not implemented yet");
+        String result = "";
+        switch(acl.size()){
+            case(0):
+                result="default";
+                break;
+            case(1):
+                if(acl.equals(encodeRight("none"))){result="none";}
+                else{throw new AccessControlException("not an ACL right");}
+                break;
+            case(2):
+                if(acl.equals(encodeRight("read"))){result="read";}
+                else{throw new AccessControlException("not an ACL right");}
+                break;
+            case(3):
+                if(acl.equals(encodeRight("write"))){result="write";}
+                else{throw new AccessControlException("not an ACL right");}
+                break;
+            case(4):
+                if(acl.equals(encodeRight("readACL"))){result="readACL";}
+                else{throw new AccessControlException("not an ACL right");}
+                break;
+            case(5):
+                if(acl.equals(encodeRight("writeACL"))){result="writeACL";}
+                else{throw new AccessControlException("not an ACL right");}
+                break;
+            default:
+                throw new AccessControlException("not an ACL right");
+        }
+        return result;
     }
     
     

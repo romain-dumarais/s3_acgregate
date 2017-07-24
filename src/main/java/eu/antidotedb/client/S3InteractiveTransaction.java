@@ -2,7 +2,6 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.S3AccessMonitor;
 import java.util.Collection;
 
 /**
@@ -35,6 +34,10 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
     @Override
     void policyAssignUncheckedHelper(ByteString user, ByteString bucket, ByteString key, Iterable<ByteString> permissions) {
         throw new AccessControlException("Operation not permitted");
+    }
+
+    Policy readBucketACLHelper(ByteString bucket, ByteString userid) {
+        return accessMonitor.bucketACLPolicyCreator(bucket,userid);
     }
     
 }

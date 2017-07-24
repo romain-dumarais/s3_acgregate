@@ -1,9 +1,7 @@
 package eu.antidotedb.client;
 
-import eu.antidotedb.client.S3ACL;
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.S3InteractiveTransaction;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
+import eu.antidotedb.client.decision.S3KeyLink;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,17 +20,21 @@ public class S3BucketACL extends S3ACL{
         super(rights);
     }
     
+    /**
+     * reads the rights for a user in the database and update it locally. Other
+     * users rights not updated
+     */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        throw new UnsupportedOperationException("not ready yet");
-        //Romain : TODO : the Key need to be linked to S3KeyLink anyhow
-        //Policy policy = new Policy(bucket, SomeArbitraryKey, ValueCoder.utf8String);
-        //return new S3ACL(policy.read(tx, userid));
+        Set<ByteString> content = tx.readBucketACLHelper(bucket, userid).read(tx, userid);
+        this.setRight(userid.toStringUtf8(), decodeRight(content));
     }
     
+    /**
+     * assigns a right to a user without touchng the others
+     */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
         Set<ByteString> encodedPermissions = encodeRight(right).stream().collect(Collectors.toSet());
         tx.bucketACLAssignHelper(userid, bucket, encodedPermissions);
-        throw new UnsupportedOperationException("not ready yet");
     }
     
     /**

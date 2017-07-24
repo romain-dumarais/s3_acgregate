@@ -62,12 +62,12 @@ public class S3DomainManager{
         return this.keyLink.userBucket(domain);
     }
     
-    public ByteString getobjectACL(ByteString objectKey){
-        return this.keyLink.objectACL(objectKey);
+    public ByteString getobjectACL(ByteString objectKey, ByteString userID){
+        return this.keyLink.objectACL(objectKey, userID);
     }
     
-    public ByteString getbucketACL(){
-        return this.keyLink.bucketACL();
+    public ByteString getbucketACL(ByteString bucketKey, ByteString userID){
+        return this.keyLink.bucketACL(bucketKey, userID);
     }
     
     public ByteString getbucketPolicy(){

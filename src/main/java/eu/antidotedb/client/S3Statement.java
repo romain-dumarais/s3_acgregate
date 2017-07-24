@@ -23,7 +23,7 @@ public class S3Statement {
   "Statement": [{
     "Sid": "1",
     "Effect": "Allow",
-    "Principal": {"AWS": ["arn:aws:iam::ACCOUNT-ID-WITHOUT-HYPHENS:root"]},
+    "Principal": {"AWS": ["arn:aws:iam::ACCOUNT-ID-WITHOUT-HYPHENS:root"]}, 
     "Action": "s3:*",
     "Resource": [
       "arn:aws:s3:::mybucket",
@@ -81,6 +81,10 @@ public class S3Statement {
         this.principals=principals;
         this.ressources=Arrays.asList(resourcetype.toString());
         this.resourcebucket=null;
+    }
+
+    public S3Statement() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     ByteString encode(){

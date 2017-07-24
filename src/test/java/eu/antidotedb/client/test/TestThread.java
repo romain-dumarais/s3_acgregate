@@ -33,7 +33,6 @@ class TestThread implements Runnable {
     }
 
     /**
-     * TODO : Romain
      * test the effect on concurrent writes of bucket policy on user1.
      * test the effect on concurrent writes of bucket ACL on user2.
      * test the effect on concurrent writes of user policy on user3.
