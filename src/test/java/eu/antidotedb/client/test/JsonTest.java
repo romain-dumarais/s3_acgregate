@@ -56,19 +56,11 @@ public class JsonTest {
         System.out.println("____round 2____");
         JsonObject jsonstatement1 = statement.encode();
         S3Statement statement2 = S3Statement.decodeStatic(jsonstatement1);
-        System.out.println("effect             : statement2 : "+statement2.getEffect());
-        System.out.println("effect             : statement0 : "+statement.getEffect());
-        System.out.println("principals         : statement2 : "+statement2.getPrincipals().toString());
-        System.out.println("principals         : statement0 : "+statement.getPrincipals().toString());
-        System.out.println("actions            : statement2 : "+statement2.getActions().toString());
-        System.out.println("actions            : statement0 : "+statement.getActions().toString());
-        System.out.println("resources list     : statement2 : "+statement2.getResources().toString());
-        System.out.println("resources list     : statement0 : "+statement.getResources().toString());
-        System.out.println("resource Bucket ID : statement2 : "+statement2.getResourceBucket().toStringUtf8());
-        System.out.println("resource Bucket ID : statement0 : "+statement.getResourceBucket().toStringUtf8());
-        System.out.println("condition block    : statement2 : "+statement2.getConditionBlock());
-        System.out.println("condition block    : statement0 : "+statement.getConditionBlock());
-        System.err.println("round 2 : "+statement.equals(statement2));
+        System.out.println("statement2 : "+statement2.getEffect()+" : "+statement2.getPrincipals().toString()+" : "+statement2.getActions().toString()+" : "+statement2.getResources().toString()+" : "+statement2.getResourceBucket().toStringUtf8()+" : "+statement2.getConditionBlock());
+        System.out.println("statement0 : "+statement.getEffect()+" : "+statement.getPrincipals().toString()+" : "+statement.getActions().toString()+" : "+statement.getResources().toString()+" : "+statement.getResourceBucket().toStringUtf8()+" : "+statement.getConditionBlock());
+        System.err.println("round 2 : "+statement.toString().equals(statement2.toString()));
+        System.out.println("round 2 : "+statement.toString());
+        System.out.println("round 2 : "+statement2.toString());
         assertEquals(statement,statement2);
     }
 }
