@@ -5,10 +5,8 @@ import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CrdtMVRegister;
 import eu.antidotedb.client.Host;
 import eu.antidotedb.client.MVRegisterRef;
-import eu.antidotedb.client.RegisterRef;
 import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.S3Client;
 import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
@@ -180,8 +178,8 @@ public class S3_Test3Attacks extends S3Test{
         }catch(Exception e){
             System.err.println("12: read resources : fail");
         }
-        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("object2TestS3"), ""));
-        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), Arrays.asList("object2TestS3"), ""));
+        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"),bucket1.getName(), Arrays.asList("object2TestS3"), ""));
+        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), bucket1.getName(),Arrays.asList("object2TestS3"), ""));
         try{
             assertEquals(buckPol,buckPolVerif);
             assertEquals(buckACL.getRight("user2"), "none");
