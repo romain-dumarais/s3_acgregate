@@ -1,11 +1,12 @@
 package eu.antidotedb.client.accessresources;
 
-import eu.antidotedb.client.accessresources.S3Statement;
-import eu.antidotedb.client.accessresources.S3Policy;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * class for UserPolicy Management, extends the S3Policy general class
@@ -18,30 +19,36 @@ public final class S3UserPolicy extends S3Policy {
     }
     
     public S3UserPolicy(){
-        super(new ArrayList<ByteString>(), new ArrayList<S3Statement>());
+        super(new ArrayList<>(), new ArrayList<>());
     }
     
     /**
-     * returns a policy object with the statement and groups from a remote user in the database
+     * updates the current policy object with the statement and groups from a remote user in the database
      * @param tx
      * @param userID user from which the policy is requested
-     * @return userPolicy
      */
     @Override
-    public S3UserPolicy readPolicy(S3InteractiveTransaction tx, ByteString userID){
-        //Romain : TODO : Create a MVRegister with good reference, pass it to the PolicyReadHelper, then request it and parse the result
-        throw new UnsupportedOperationException("not implemented yet");
+    public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
+        Collection<String> policy = tx.readPolicyHelper(userID,true);
+        List<S3Statement> policystatements= new ArrayList<>();
+        List<ByteString> policyGroups = new ArrayList<>();
+        //TODO : Romain : parse JSON result
+        
+        super.statements.clear(); super.groups.clear();
+        policyGroups.stream().forEach((group) -> {super.addGroup(group);});
+        policystatements.stream().forEach((statement) -> {super.addStatement(statement);});
     }
     
     /**
-     * assigns a policy object to a remote user
+     * assigns the current Policy object value to the remote policy 
      * @param tx current transaction
      * @param userkey user to which assign this policy
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
-        //Romain : TODO : Create a MVRegister with good reference, pass it to the PolicyAssignHelper, then assigns it
+        Set<String> policygroups=new HashSet<>(), policystatements=new HashSet<>();
+        //TODO : Romain : parse to JSON objects
+        tx.assignPolicyHelper(userkey,true,policygroups,policystatements);
         throw new UnsupportedOperationException("not implemented yet");
     }
-    
 }

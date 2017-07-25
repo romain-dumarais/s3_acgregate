@@ -90,13 +90,34 @@ public class S3AccessMonitor extends AccessMonitor{
         //read
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
+        
+    Collection<String> readUserPolicy(ByteString key) {
+        //check
+        //read
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
 
-    /*
-    //TODO : Romain : i don't think it is a good idea
-    Policy bucketACLPolicyCreator(ByteString bucket, ByteString userid) {
-        Policy bucketACL = new Policy(this.keyLink.securityBucket(bucket),this.keyLink.bucketACL(bucket, userid),ValueCoder.utf8String);
-        return bucketACL;
-    }*/
+    Collection<String> readBucketPolicy(ByteString key) {
+        //check
+        //read
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    void assignUserPolicy(ByteString key, Collection<String> groups, Collection<String> statements) {
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+
+    void assignBucketPolicy(ByteString key, Collection<String> groups, Collection<String> statements) {
+        //check
+        //assign
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    void policyMergerHelper(){
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
     
     @Override
     void assignPermissions(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString txid, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {

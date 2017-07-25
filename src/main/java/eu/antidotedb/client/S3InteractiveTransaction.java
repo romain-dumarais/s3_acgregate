@@ -23,29 +23,35 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
         accessMonitor.unsetDomain(connection);
     }
     
-    protected Collection<? extends ByteString> readObjectACLHelper(ByteString bucket, ByteString key, ByteString user){
+    //access Resources Management
+    public Collection<? extends ByteString> readObjectACLHelper(ByteString bucket, ByteString key, ByteString user){
         return accessMonitor.readObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user);
     }
     
-    protected void objectACLAssignHelper(ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
+    public void objectACLAssignHelper(ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
         accessMonitor.assignObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user, permissions);
     }
     
-    protected Collection<? extends ByteString>  readBucketACLHelper(ByteString bucket, ByteString userid) {
+    public Collection<? extends ByteString>  readBucketACLHelper(ByteString bucket, ByteString userid) {
         return accessMonitor.readBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, userid);
     }
     
-    protected void bucketACLAssignHelper(ByteString user, ByteString bucket, Collection<ByteString> permissions) {
+    public void bucketACLAssignHelper(ByteString user, ByteString bucket, Collection<ByteString> permissions) {
         accessMonitor.assignBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, user, permissions);
     }
 
-    //TODO : Romain : Policies
+    public Collection<String> readPolicyHelper(ByteString key, boolean b) {
+        if(b){return accessMonitor.readUserPolicy(key);}
+        else{return accessMonitor.readBucketPolicy(key);}
+    }
+
+    public void assignPolicyHelper(ByteString key, boolean b, Collection<String> groups, Collection<String> statements) {
+        if(b){accessMonitor.assignUserPolicy(key,groups,statements);}
+        else{accessMonitor.assignBucketPolicy(key,groups,statements);}
+    }
     
     @Override
     void policyAssignUncheckedHelper(ByteString user, ByteString bucket, ByteString key, Iterable<ByteString> permissions) {
         throw new AccessControlException("Operation not permitted");
     }
-
-    
-    
 }

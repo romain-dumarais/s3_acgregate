@@ -15,8 +15,8 @@ import java.util.List;
  * TODO : everything
  */
 public abstract class S3Policy {
-    private List<S3Statement> statements;
-    private List<ByteString> groups;
+    protected List<S3Statement> statements;
+    protected List<ByteString> groups;
     
     public S3Policy(List<ByteString> groups, List<S3Statement> statements){
         this.groups=groups;
@@ -43,14 +43,22 @@ public abstract class S3Policy {
         this.groups.remove(group);
     }
     
-    public S3Policy readPolicy(S3InteractiveTransaction tx, ByteString key){
-        //TODO : create a MVreg object and read it, via a dedicated helper in the S3InteractiveTransaction
-        throw new UnsupportedOperationException("not implemented yet");
+    /**
+     * updates the current policy object with a remote Policy value
+     * @param tx the current transaction
+     * @param key either the bucket key or the userID
+     */
+    public void readPolicy(S3InteractiveTransaction tx, ByteString key){
+        throw new UnsupportedOperationException("abstract class : not permitted");
     }
 
+    /**
+     * assigns the current Policy object value to the remote policy 
+     * @param tx the current transaction
+     * @param key either the bucket key or the userID
+     */
     public void assignPolicy(S3InteractiveTransaction tx, ByteString key){
-        //TODO : create a MVreg object and update it, via a dedicated helper in the S3InteractiveTransaction
-        throw new UnsupportedOperationException("not implemented yet");
+        throw new UnsupportedOperationException("abstract class : not permitted");
     }
     
     
