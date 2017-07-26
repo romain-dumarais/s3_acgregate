@@ -53,14 +53,17 @@ public class JsonTest {
     
     @Test
     public void round2(){
-        System.out.println("____round 2____");
         JsonObject jsonstatement1 = statement.encode();
         S3Statement statement2 = S3Statement.decodeStatic(jsonstatement1);
-        System.out.println("statement2 : "+statement2.getEffect()+" : "+statement2.getPrincipals().toString()+" : "+statement2.getActions().toString()+" : "+statement2.getResources().toString()+" : "+statement2.getResourceBucket().toStringUtf8()+" : "+statement2.getConditionBlock());
-        System.out.println("statement0 : "+statement.getEffect()+" : "+statement.getPrincipals().toString()+" : "+statement.getActions().toString()+" : "+statement.getResources().toString()+" : "+statement.getResourceBucket().toStringUtf8()+" : "+statement.getConditionBlock());
-        System.err.println("round 2 : "+statement.toString().equals(statement2.toString()));
-        System.out.println("round 2 : "+statement.toString());
-        System.out.println("round 2 : "+statement2.toString());
-        assertEquals(statement,statement2);
+        //System.out.println("statement2 : "+statement2.getEffect()+" : "+statement2.getPrincipals().toString()+" : "+statement2.getActions().toString()+" : "+statement2.getResources().toString()+" : "+statement2.getResourceBucket().toStringUtf8()+" : "+statement2.getConditionBlock());
+        //System.out.println("statement0 : "+statement.getEffect()+" : "+statement.getPrincipals().toString()+" : "+statement.getActions().toString()+" : "+statement.getResources().toString()+" : "+statement.getResourceBucket().toStringUtf8()+" : "+statement.getConditionBlock());
+        System.out.println("round 2 : "+statement.toString().equals(statement2.toString()));
+        
+        assertEquals(statement.getEffect(),statement2.getEffect());
+        assertEquals(statement.getPrincipals(),statement2.getPrincipals());
+        assertEquals(statement.getActions(),statement2.getActions());
+        assertEquals(statement.getResources(),statement2.getResources());
+        assertEquals(statement.getResourceBucket(),statement2.getResourceBucket());
+        assertEquals(statement.getConditionBlock(),statement2.getConditionBlock());
     }
 }
