@@ -57,7 +57,7 @@ public class JsonTest {
         S3Statement statement2 = S3Statement.decodeStatic(jsonstatement1);
         //System.out.println("statement2 : "+statement2.getEffect()+" : "+statement2.getPrincipals().toString()+" : "+statement2.getActions().toString()+" : "+statement2.getResources().toString()+" : "+statement2.getResourceBucket().toStringUtf8()+" : "+statement2.getConditionBlock());
         //System.out.println("statement0 : "+statement.getEffect()+" : "+statement.getPrincipals().toString()+" : "+statement.getActions().toString()+" : "+statement.getResources().toString()+" : "+statement.getResourceBucket().toStringUtf8()+" : "+statement.getConditionBlock());
-        System.out.println("round 2 : "+statement.toString().equals(statement2.toString()));
+        //System.out.println("round 2 : "+statement.toString().equals(statement2.toString()));
         
         assertEquals(statement.getEffect(),statement2.getEffect());
         assertEquals(statement.getPrincipals(),statement2.getPrincipals());

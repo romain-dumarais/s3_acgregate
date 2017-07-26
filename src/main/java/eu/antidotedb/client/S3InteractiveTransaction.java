@@ -23,21 +23,28 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
         accessMonitor.unsetDomain(connection);
     }
     
-    //access Resources Management
-    public Collection<? extends ByteString> readObjectACLHelper(ByteString bucket, ByteString key, ByteString user){
-        return accessMonitor.readObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user);
+    //ACCESS RESOURCE MANAGEMENT HELPERS
+    /**
+     * forwards the read ACL request to the AccessMonitor, for object or bucket ACL
+     * @param isBucketACL {@code true} if the requested ACL is a bucket ACL, {@code false} for an object ACL
+     * @param bucket
+     * @param key object key for an objct ACL, null for a BucketACL
+     * @param userid ID of the user for which the ACL is requested 
+     * @return permissions set of permissions for the user {@param userID} and the requested resource
+     */
+    public Collection<? extends ByteString> readACLHelper(boolean isBucketACL, ByteString bucket, ByteString key, ByteString userid){
+        return accessMonitor.readACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), isBucketACL, bucket, key, userid);
     }
-    
-    public void objectACLAssignHelper(ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
-        accessMonitor.assignObjectACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, key, user, permissions);
-    }
-    
-    public Collection<? extends ByteString>  readBucketACLHelper(ByteString bucket, ByteString userid) {
-        return accessMonitor.readBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, userid);
-    }
-    
-    public void bucketACLAssignHelper(ByteString user, ByteString bucket, Collection<ByteString> permissions) {
-        accessMonitor.assignBucketACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), bucket, user, permissions);
+    /**
+     * forwards the assign request to the AccessMonitor, for object or bucket ACL
+     * @param isBucketACL {@code true} if the requested ACL is a bucket ACL, {@code false} for an object ACL
+     * @param bucket
+     * @param key
+     * @param userid ID of the user for which the ACL is assigned 
+     * @param permissions set of permissions for the user {@param userID} and the requested resource
+     */
+    public void assignACLHelper(boolean isBucketACL, ByteString bucket, ByteString key, ByteString userid, Collection<ByteString> permissions){
+        accessMonitor.assignACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), isBucketACL, bucket, key, userid, permissions);
     }
 
     public Collection<String> readPolicyHelper(ByteString key, boolean b) {

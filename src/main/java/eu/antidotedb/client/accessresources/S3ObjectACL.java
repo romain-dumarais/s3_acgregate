@@ -30,7 +30,7 @@ public class S3ObjectACL extends S3ACL{
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
         //Policy policy = new Policy(bucket, key, ValueCoder.utf8String);
         //this.setRight(userid.toStringUtf8(), decodeRight(policy.read(tx,userid)));
-        Collection<? extends ByteString> policyValues = tx.readObjectACLHelper(bucket, userid, key);
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(false, bucket, userid, key);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }
@@ -39,19 +39,19 @@ public class S3ObjectACL extends S3ACL{
      * assigns a certain right to a user. Does not modify the other users rights.
      */
     public static void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
-        tx.objectACLAssignHelper(bucket, key, userid, encodeRight(right));
+        tx.assignACLHelper(false, bucket, key, userid, encodeRight(right));
     }
     
      /**
      * assigns a the current policy to a user. Does not modify the other users rights.
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        tx.objectACLAssignHelper(bucket, key, userid, this.permissions.get(userid));
+        tx.assignACLHelper(false, bucket, key, userid, this.permissions.get(userid));
     }
     
      /**
       * assigns the current ACL Map to a remote objectACL.
-      * This operation does not reduce nor modify any rights of unconsidered users
+      * This operation does not modify the rights of users that are not present in the local ACL object
       * @param tx transaction used for the assigh operation
       * @param bucket bucket of the target object
       * @param key key of the target object
@@ -59,7 +59,7 @@ public class S3ObjectACL extends S3ACL{
     public void assign(S3InteractiveTransaction tx, ByteString bucket, ByteString key){
         Set<ByteString> users = this.permissions.keySet();
         for(ByteString user:users){
-            tx.objectACLAssignHelper(bucket, key, user, this.permissions.get(user));
+            tx.assignACLHelper(false, bucket, key, user, this.permissions.get(user));
             
         }
     }

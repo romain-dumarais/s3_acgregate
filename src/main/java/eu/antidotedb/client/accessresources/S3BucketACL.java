@@ -27,7 +27,7 @@ public class S3BucketACL extends S3ACL{
      * users rights not updated
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        Collection<? extends ByteString> policyValues = tx.readBucketACLHelper(bucket, userid);
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(true, bucket, null, userid);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }
@@ -35,27 +35,27 @@ public class S3BucketACL extends S3ACL{
     /**
      * assigns a right to a user without touching the others
      */
-    public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
-        tx.bucketACLAssignHelper(bucket, userid, encodeRight(right));
+    public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
+        tx.assignACLHelper(true, bucket, null, userid, encodeRight(right));
     }
     
     /**
      * assigns the current policy to a user without touching the others
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        tx.bucketACLAssignHelper(bucket, userid, this.permissions.get(userid));
+        tx.assignACLHelper(true, bucket, null, userid, this.permissions.get(userid));
     }
     
     /**
       * assigns the current ACL Map to a remote objectACL.
-      * This operation does not reduce nor modify any rights of unconsidered users
+      * This operation does not modify the rights of users that are not present in the local ACL object
       * @param tx transaction used for the assigh operation
       * @param bucket bucket of the target object
       */
     public void assign(S3InteractiveTransaction tx, ByteString bucket){
         Set<ByteString> users = this.permissions.keySet();
         users.stream().forEach((user) -> {
-            tx.bucketACLAssignHelper(user, bucket, this.permissions.get(user));
+            tx.assignACLHelper(true, bucket, null, user, this.permissions.get(user));
         });
     }
 }
