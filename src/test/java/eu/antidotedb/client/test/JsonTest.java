@@ -11,7 +11,7 @@ import org.junit.Test;
 
 /**
  * class to test JSON parsing of Policies
- * @author Romain
+ * @author romain-dumarais
  */
 public class JsonTest {
     private final S3Statement statement = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");

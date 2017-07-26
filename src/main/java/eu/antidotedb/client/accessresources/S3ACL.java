@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * This class is just a handler to manage Policies from ACGregate
  *  it represents just ACL as set of permissions
- * @author Romain
+ * @author romain-dumarais
  */
 public abstract class S3ACL{
     protected Map<ByteString, Set<ByteString>> permissions;

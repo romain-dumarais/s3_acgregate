@@ -8,7 +8,7 @@ import java.util.TreeMap;
 
 /**
  * TODO : Romain : everything
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3DecisionProcedure implements DecisionProcedure {
     private final ByteString userBucket;

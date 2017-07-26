@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * handler for S3 Object ACL
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3ObjectACL extends S3ACL{
     
@@ -38,7 +38,7 @@ public class S3ObjectACL extends S3ACL{
     /**
      * assigns a certain right to a user. Does not modify the other users rights.
      */
-    public static void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
+    public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
         tx.assignACLHelper(false, bucket, key, userid, encodeRight(right));
     }
     

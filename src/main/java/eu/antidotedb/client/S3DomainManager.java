@@ -5,10 +5,10 @@ import eu.antidotedb.client.decision.S3KeyLink;
 
 /**
  * Class for operation with domain root credentials
-• CreateBucket (bucket_key) : initializes a bucket by setting the domain flag
-• DeleteBucket ( bucket_key) : deletes a bucket by setting the domain flag
-• rootTransaction : create SecuredTransactions with root credentials
- * @author Romain
+ * CreateBucket (bucket_key) : initializes a bucket by setting the domain flag
+ * DeleteBucket ( bucket_key) : deletes a bucket by setting the domain flag
+ * start Transaction : create S3 Interactive Transactions with root credentials
+ * @author romain-dumarais
  * TODO : everything
  */
 public class S3DomainManager{

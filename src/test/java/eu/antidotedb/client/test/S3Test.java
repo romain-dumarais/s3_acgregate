@@ -18,7 +18,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3Test {
     final boolean debugLog;

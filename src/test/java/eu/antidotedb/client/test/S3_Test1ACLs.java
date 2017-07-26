@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Class to implement scenarios 1 to 4
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3_Test1ACLs extends S3Test {
     
@@ -361,7 +361,7 @@ public class S3_Test1ACLs extends S3Test {
         //user fails to grant itself permissions
         try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(user1, domain);
-            S3ObjectACL.assignForUser(tx1, bucket1.getName(), object1.getRef().getKey(), user1, "write");
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object1.getRef().getKey(), user1, "write");
             tx1.commitTransaction();
             System.err.println("4 : self-granting rights : fail");
         }catch(AccessControlException e){

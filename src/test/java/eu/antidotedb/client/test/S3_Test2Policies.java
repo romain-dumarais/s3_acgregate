@@ -31,7 +31,7 @@ import org.junit.Test;
 
 /**
  * Test Class to implement scenarios 5 to 10
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3_Test2Policies extends S3Test{
     final CrdtSet<String> object3;

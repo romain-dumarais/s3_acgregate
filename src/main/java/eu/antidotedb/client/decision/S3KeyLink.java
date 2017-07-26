@@ -7,7 +7,7 @@ import com.google.protobuf.ByteString;
 • Computes the Data Bucket from a origin Bucket name
 • Computes the ACL key from the object key
 • Computes the user bucket key from the domain key
- * @author Romain
+ * @author romain-dumarais
  * TODO : everything
  */
 public class S3KeyLink {

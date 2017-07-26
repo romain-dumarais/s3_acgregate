@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * class for UserPolicy Management, extends the S3Policy general class
- * @author Romain 
+ * @author romain-dumarais 
  */
 public final class S3UserPolicy extends S3Policy {
     
@@ -29,7 +29,7 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
-        Collection<String> policy = tx.readPolicyHelper(userID,true);
+        Collection<? extends ByteString> policy = tx.readPolicyHelper(true, userID);
         List<S3Statement> policystatements= new ArrayList<>();
         List<ByteString> policyGroups = new ArrayList<>();
         //TODO : Romain : parse JSON result
@@ -48,7 +48,7 @@ public final class S3UserPolicy extends S3Policy {
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
         Set<String> policygroups=new HashSet<>(), policystatements=new HashSet<>();
         //TODO : Romain : parse to JSON objects
-        tx.assignPolicyHelper(userkey,true,policygroups,policystatements);
+        tx.assignPolicyHelper(true, userkey, policygroups, policystatements);
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

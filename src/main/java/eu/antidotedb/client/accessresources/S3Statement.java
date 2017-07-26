@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * A class to implement statement structure in the S3 Access Control Procedure
  * note that resource can be either a bucket, a CRDT type, or set of object keys
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3Statement {
     private final boolean effect;

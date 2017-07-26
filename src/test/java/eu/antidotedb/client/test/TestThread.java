@@ -47,16 +47,15 @@ class TestThread implements Runnable {
             S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),Arrays.asList(statement1,statement2));
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             //user2
-            S3BucketACL bucketACL = new S3BucketACL();
-            bucketACL.assignForUser(tx1, bucket1.getName(),ByteString.copyFromUtf8("user2"),"write");
+            S3BucketACL.assignForUserStatic(tx1, bucket1.getName(),ByteString.copyFromUtf8("user2"),"write");
             //user3
             S3Statement statement3 = new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), bucket1.getName(), Arrays.asList("object1TestS3"), "");
             S3Statement statement4 = new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), bucket1.getName(), Arrays.asList("object2TestS3"), "");
             S3Policy user3Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(statement3,statement4));
             user3Policy.assignPolicy(tx1, ByteString.copyFromUtf8("user3"));
             //user4
-            S3ObjectACL.assignForUser(tx1, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), ByteString.copyFromUtf8("user4"),"write");
-            S3ObjectACL.assignForUser(tx1, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), ByteString.copyFromUtf8("user4"),"write");
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), ByteString.copyFromUtf8("user4"),"write");
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), ByteString.copyFromUtf8("user4"),"write");
             
             tx1.commitTransaction();
             System.out.println("11: admin reset all resources : success");

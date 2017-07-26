@@ -6,12 +6,12 @@ import java.util.List;
 
 /**
  * Extends MVregister
-• Builder from ByteString
-• checks for Explicit Allow (user, op, userData)*
-• checks for Explicit deny*
-* resolves concurrent updates and interprets the conditionBlocks
+ * Builder from ByteString
+ * checks for Explicit Allow (user, op, userData)*
+ * checks for Explicit deny
+ * resolves concurrent updates and interprets the conditionBlocks
  * 
- * @author Romain
+ * @author romain-dumarais
  * TODO : everything
  */
 public abstract class S3Policy {

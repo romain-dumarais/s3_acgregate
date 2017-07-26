@@ -6,7 +6,7 @@ import java.util.Collection;
 
 /**
  * class for antidote interactive transactions inside S3-like access control model
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
     S3AccessMonitor accessMonitor;
@@ -47,14 +47,12 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
         accessMonitor.assignACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), isBucketACL, bucket, key, userid, permissions);
     }
 
-    public Collection<String> readPolicyHelper(ByteString key, boolean b) {
-        if(b){return accessMonitor.readUserPolicy(key);}
-        else{return accessMonitor.readBucketPolicy(key);}
+    public Collection<? extends ByteString> readPolicyHelper(boolean isUserPolicy, ByteString key) {
+        return accessMonitor.readPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), isUserPolicy, key);
     }
 
-    public void assignPolicyHelper(ByteString key, boolean b, Collection<String> groups, Collection<String> statements) {
-        if(b){accessMonitor.assignUserPolicy(key,groups,statements);}
-        else{accessMonitor.assignBucketPolicy(key,groups,statements);}
+    public void assignPolicyHelper(boolean isUserPolicy, ByteString key, Collection<String> groups, Collection<String> statements) {
+        accessMonitor.assignPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), isUserPolicy, key,groups,statements);
     }
     
     @Override

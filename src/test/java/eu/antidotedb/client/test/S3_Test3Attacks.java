@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * this class tests some specific attacks against S3 access control monitor
  * scenario 11
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3_Test3Attacks extends S3Test{
     

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * handler for S3 Bucket ACL
- * @author Romain
+ * @author romain-dumarais
  */
 public class S3BucketACL extends S3ACL{
     

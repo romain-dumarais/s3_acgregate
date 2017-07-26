@@ -13,7 +13,7 @@ import java.util.List;
  * creates the transaction with a userID, domainID [optional userData]
  * loginAsRoot → return an interface for root operations
  * TODO : everything
- * @author Romain from a model from mweber_ukl
+ * @author romain-dumarais from a model from mweber_ukl
  */
 public final class S3Client extends SecureAntidoteClient{
     private final S3AccessMonitor accessMonitor = new S3AccessMonitor(new S3DecisionProcedure()); //override the AccessMonitor
