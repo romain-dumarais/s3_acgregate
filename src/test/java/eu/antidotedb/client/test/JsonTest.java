@@ -5,6 +5,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3Statement;
+import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class JsonTest {
     private final S3Statement statement = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
     
     @Test
-    public void decode(){
+    public void decodeStatement(){
         String jsonString = statement.encode().toString();
         
         JsonObject value = Json.parse(jsonString).asObject();
@@ -33,7 +34,7 @@ public class JsonTest {
     }
     
     @Test
-    public void encode(){
+    public void encodeStatement(){
         //System.out.println(statement.encode().toString());
         JsonValue value = Json.parse(statement.encode().toString()).asObject();
         //System.out.println(value.isObject());
@@ -65,5 +66,53 @@ public class JsonTest {
         assertEquals(statement.getResources(),statement2.getResources());
         assertEquals(statement.getResourceBucket(),statement2.getResourceBucket());
         assertEquals(statement.getConditionBlock(),statement2.getConditionBlock());
+    }
+    
+    @Test
+    public void epolicyRound(){
+        S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
+        S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "");
+        S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList("getValues", "set"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
+        S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket2"), "another condition block");
+        S3UserPolicy policy1 = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("user_group1")), Arrays.asList(statement1, statement2, statement3, statement4));
+        String stringPolicy = policy1.encode().toString();
+        //System.out.println(stringPolicy);
+        
+        JsonObject value = Json.parse(stringPolicy).asObject();
+        S3UserPolicy policy2 = new S3UserPolicy();
+        policy2.decode(value);
+        
+        //System.out.println("egalité : "+policy1.equals(policy2));
+
+        //policy1 is included in policy2
+        for(int i=0;i<policy1.getStatements().size();i++){
+            S3Statement statPolicy1, statPolicy2;
+            statPolicy1 = policy1.getStatement(i);
+            statPolicy2 = policy2.getStatement(i);
+            assertEquals(statPolicy1.getEffect(),statPolicy2.getEffect());
+            assertEquals(statPolicy1.getPrincipals(),statPolicy2.getPrincipals());
+            assertEquals(statPolicy1.getActions(),statPolicy2.getActions());
+            assertEquals(statPolicy1.getResources(),statPolicy2.getResources());
+            assertEquals(statPolicy1.getResourceBucket(),statPolicy2.getResourceBucket());
+            assertEquals(statPolicy1.getConditionBlock(),statPolicy2.getConditionBlock());
+        }
+        for(int i=0;i<policy1.getGroups().size();i++){
+            assertEquals(policy1.getGroup(i), policy2.getGroup(i));
+        }
+        //policy1 = policy2
+        for(int i=0;i<policy2.getStatements().size();i++){
+            S3Statement statPolicy1, statPolicy2;
+            statPolicy1 = policy1.getStatement(i);
+            statPolicy2 = policy2.getStatement(i);
+            assertEquals(statPolicy1.getEffect(),statPolicy2.getEffect());
+            assertEquals(statPolicy1.getPrincipals(),statPolicy2.getPrincipals());
+            assertEquals(statPolicy1.getActions(),statPolicy2.getActions());
+            assertEquals(statPolicy1.getResources(),statPolicy2.getResources());
+            assertEquals(statPolicy1.getResourceBucket(),statPolicy2.getResourceBucket());
+            assertEquals(statPolicy1.getConditionBlock(),statPolicy2.getConditionBlock());
+        }
+        for(int i=0;i<policy2.getGroups().size();i++){
+            assertEquals(policy1.getGroup(i), policy2.getGroup(i));
+        }
     }
 }

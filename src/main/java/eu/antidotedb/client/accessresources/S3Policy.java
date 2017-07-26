@@ -1,5 +1,8 @@
 package eu.antidotedb.client.accessresources;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.List;
@@ -15,6 +18,8 @@ import java.util.List;
  * TODO : everything
  */
 public abstract class S3Policy {
+
+    
     protected List<S3Statement> statements;
     protected List<ByteString> groups;
     
@@ -61,6 +66,21 @@ public abstract class S3Policy {
         throw new UnsupportedOperationException("abstract class : not permitted");
     }
     
+    public JsonObject encode(){
+        JsonArray jsongroups = Json.array(), jsonstatements = Json.array();
+        this.groups.stream().forEach((group) -> {
+            jsongroups.add(group.toStringUtf8());
+        });
+        this.statements.stream().forEach((stat) -> {
+            jsonstatements.add(stat.encode());
+        });
+        JsonObject jsonPolicy = Json.object();
+        jsonPolicy.add("Groups", jsongroups);
+        jsonPolicy.add("Statements", jsonstatements);
+        return jsonPolicy;
+    }
+    
+    public abstract void decode(JsonObject value);
     
     public boolean explicitAllow(/*all the needed args + optional userData*/){
         throw new UnsupportedOperationException("not implemented yet");
@@ -70,5 +90,14 @@ public abstract class S3Policy {
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    
+    //helpers for tests
+    public List<S3Statement> getStatements(){
+        return this.statements;
+    }
+    public S3Statement getStatement(int index){
+        return this.statements.get(index);
+    }
+    public ByteString getGroup(int index){
+        return this.groups.get(index);
+    }
 }

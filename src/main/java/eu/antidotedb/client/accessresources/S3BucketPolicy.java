@@ -1,5 +1,8 @@
 package eu.antidotedb.client.accessresources;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.ArrayList;
@@ -50,6 +53,18 @@ public final class S3BucketPolicy extends S3Policy{
         //TODO : Romain : parse to JSON values
         tx.assignPolicyHelper(false, bucketID, policygroups, policystatements);
         throw new UnsupportedOperationException("not implemented yet");
+    }
+    
+    @Override
+    public void decode(JsonObject value) {
+        JsonArray jsonGroups = value.get("Groups").asArray();
+        JsonArray jsonStatements = value.get("Statements").asArray();
+        for(JsonValue jsongroup : jsonGroups){
+            this.groups.add(ByteString.copyFromUtf8(jsongroup.asString()));
+        }
+        for(JsonValue jsonstatement : jsonStatements){
+            this.statements.add(S3Statement.decodeStatic(jsonstatement.asObject()));
+        }
     }
     
 }
