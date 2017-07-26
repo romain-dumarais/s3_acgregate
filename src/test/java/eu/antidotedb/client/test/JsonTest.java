@@ -58,7 +58,7 @@ public class JsonTest {
         S3Statement statement2 = S3Statement.decodeStatic(jsonstatement1);
         //System.out.println("statement2 : "+statement2.getEffect()+" : "+statement2.getPrincipals().toString()+" : "+statement2.getActions().toString()+" : "+statement2.getResources().toString()+" : "+statement2.getResourceBucket().toStringUtf8()+" : "+statement2.getConditionBlock());
         //System.out.println("statement0 : "+statement.getEffect()+" : "+statement.getPrincipals().toString()+" : "+statement.getActions().toString()+" : "+statement.getResources().toString()+" : "+statement.getResourceBucket().toStringUtf8()+" : "+statement.getConditionBlock());
-        //System.out.println("round 2 : "+statement.toString().equals(statement2.toString()));
+        assertEquals(statement,statement2);
         
         assertEquals(statement.getEffect(),statement2.getEffect());
         assertEquals(statement.getPrincipals(),statement2.getPrincipals());
@@ -69,7 +69,7 @@ public class JsonTest {
     }
     
     @Test
-    public void epolicyRound(){
+    public void policyRound(){
         S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
         S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "");
         S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList("getValues", "set"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
@@ -82,13 +82,14 @@ public class JsonTest {
         S3UserPolicy policy2 = new S3UserPolicy();
         policy2.decode(value);
         
-        //System.out.println("egalité : "+policy1.equals(policy2));
+        System.err.println("policyRound : "+policy1.equals(policy2));
 
         //policy1 is included in policy2
         for(int i=0;i<policy1.getStatements().size();i++){
             S3Statement statPolicy1, statPolicy2;
             statPolicy1 = policy1.getStatement(i);
             statPolicy2 = policy2.getStatement(i);
+            assertEquals(statPolicy1, statPolicy2);
             assertEquals(statPolicy1.getEffect(),statPolicy2.getEffect());
             assertEquals(statPolicy1.getPrincipals(),statPolicy2.getPrincipals());
             assertEquals(statPolicy1.getActions(),statPolicy2.getActions());

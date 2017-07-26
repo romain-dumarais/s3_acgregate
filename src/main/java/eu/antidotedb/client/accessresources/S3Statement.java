@@ -18,7 +18,7 @@ import java.util.List;
 public class S3Statement {
     private final boolean effect;
     private final List<String> principals;
-    private final List<String> actions;
+    private final List<String> actions; //TODO : Romain : use an ENUM type
     private final List<String> resourcesList;
     private final ByteString resourcebucket;
     private final String conditionBlock;
@@ -27,7 +27,7 @@ public class S3Statement {
      * creates a Statement object with
      * @param effect {@code true} if the operation should be allowed, {@code false} otherwise
      * @param principals set of users and/or groups that requests the action
-     * @param actions TODO : Romain
+     * @param actions the type of actions performed
      * @param resourceBucket bucket of the following resources 
      * @param resources list of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
@@ -45,7 +45,7 @@ public class S3Statement {
      * 
      * @param effect {@code true} if the operation should be allowed, {@code false} otherwise
      * @param principals set of users and/or groups that requests the action
-     * @param actions TODO : Romain
+     * @param actions the type of actions performed
      * @param bucketKey name of the bucket for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
@@ -54,7 +54,7 @@ public class S3Statement {
         this.conditionBlock=conditionBlock;
         this.effect=effect;
         this.principals=principals;
-        this.resourcesList=null;
+        this.resourcesList=new ArrayList<>();
         this.resourcebucket=bucketKey;
     }
     
@@ -62,7 +62,7 @@ public class S3Statement {
      * 
      * @param effect {@code true} if the operation should be allowed, {@code false} otherwise
      * @param principals set of users and/or groups that requests the action
-     * @param actions TODO : Romain
+     * @param actions the type of actions performed
      * @param resourcetype type of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
@@ -76,10 +76,10 @@ public class S3Statement {
         throw new UnsupportedOperationException("resourcetype not parsed yet");//TODO : Romain
     }
 
-    public S3Statement() {
-        throw new UnsupportedOperationException("Not supported yet.");//TODO : Romain : do I need this ?
-    }
-    
+    /**
+     * helper to encode Statement as a JSON object
+     * @return jsonStatement
+     */
     public JsonObject encode(){
         JsonArray principalsJson = Json.array();
         principals.stream().forEach((princip) -> {principalsJson.add(princip);});
@@ -143,6 +143,27 @@ public class S3Statement {
         }
     }
     
+    @Override
+    public boolean equals(Object o){
+        if(!o.getClass().equals(this.getClass())){return false;}
+        else{boolean isEqual;
+        S3Statement ostatement = (S3Statement) o;
+        isEqual = this.effect==ostatement.getEffect()  
+                && this.resourcebucket.equals(ostatement.getResourceBucket()) && this.actions.equals(ostatement.getActions())
+                && this.principals.equals(ostatement.getPrincipals()) && this.resourcesList.equals(ostatement.getResources());
+        if(this.conditionBlock==null){
+            isEqual = isEqual && (ostatement.getConditionBlock()==null);
+        }else{
+            isEqual = isEqual && this.conditionBlock.equals(ostatement.getConditionBlock());
+        }/*
+        if(this.resourcesList.isEmpty()){
+            isEqual = isEqual && ostatement.getResources().isEmpty();
+        }else{
+            isEqual = isEqual && this.resourcesList.equals(ostatement.getResources());
+        }*/
+        return isEqual;}
+    }
+    
     //getters
     public boolean getEffect(){
         return this.effect;
@@ -157,13 +178,13 @@ public class S3Statement {
         return this.resourcesList;
     }
     /**
-     * may be null
+     * @return resourceBucket may be empty
      */
     public ByteString getResourceBucket(){
         return this.resourcebucket;
     }
     /**
-     * may be null
+     * @return conditionBlock may be null
      */
     public String getConditionBlock(){
         return this.conditionBlock;

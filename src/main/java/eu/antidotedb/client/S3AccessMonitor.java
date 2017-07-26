@@ -2,6 +2,7 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.decision.AccessControlException;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
@@ -9,6 +10,7 @@ import eu.antidotedb.client.messages.AntidoteRequest;
 import eu.antidotedb.client.messages.AntidoteResponse;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -177,7 +179,8 @@ public class S3AccessMonitor extends AccessMonitor{
         throw new UnsupportedOperationException("Not supported yet."); 
     }
     
-    void policyMergerHelper(){
+    private S3Policy policyMergerHelper(List<S3Policy> policies){
+        
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
     

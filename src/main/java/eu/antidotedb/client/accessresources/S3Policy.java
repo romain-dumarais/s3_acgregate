@@ -13,9 +13,7 @@ import java.util.List;
  * checks for Explicit Allow (user, op, userData)*
  * checks for Explicit deny
  * resolves concurrent updates and interprets the conditionBlocks
- * 
  * @author romain-dumarais
- * TODO : everything
  */
 public abstract class S3Policy {
 
