@@ -2,73 +2,105 @@ package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.accessresources.S3BucketACL;
+import eu.antidotedb.client.accessresources.S3BucketPolicy;
+import eu.antidotedb.client.accessresources.S3ObjectACL;
+import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Collection;
 import java.util.Map;
 
 /**
- * TODO : Romain : remove class
+ * this class performes the access decisions in an function-oriented way
  * @author romain-dumarais
+ * TODO : Romain : add groups
  */
 public class S3DecisionProcedure implements DecisionProcedure {
-    private final ByteString userBucket;
-    private final ByteString owner; 
     
+    //--------------------------------
+    //      Object Management
+    //--------------------------------
     
-    public S3DecisionProcedure(){
-        //throw new AccessControlException("unsupported operation");
-        // for tests
-        this.owner=ByteString.copyFromUtf8("remote_after_tests");
-        this.userBucket=ByteString.copyFromUtf8("remove_after_tests");
+    public boolean decideObjectRead(ByteString domain, ByteString currentUser, Object userData, S3ObjectACL objectACL, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    public S3DecisionProcedure(String ownerKey){
-        this.owner=ByteString.copyFromUtf8(ownerKey);
-        this.userBucket=ByteString.copyFromUtf8("."+ownerKey+"_userBucket");
+    public boolean decideObjectAssign(ByteString domain, ByteString currentUser, Object userData, S3ObjectACL objectACL, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
+    
+    //--------------------------------
+    //      ACL Management
+    //--------------------------------
+    
+    public boolean decideBucketACLRead(ByteString domain, ByteString currentUser, Object userData, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideBucketACLAssign(ByteString domain, ByteString currentUser, Object userData, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideObjectACLRead(ByteString domain, ByteString currentUser, Object userData, S3ObjectACL objectACL, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideObjectACLAssign(ByteString domain, ByteString currentUser, Object userData, S3ObjectACL objectACL, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    //--------------------------------
+    //      Policies Management
+    //--------------------------------
+    
+    public boolean decideBucketPolicyRead(ByteString domain, ByteString currentUser, Object userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideBucketPolicyAssign(ByteString domain, ByteString currentUser, Object userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideUserPolicyRead(ByteString domain, ByteString currentUser, Object userData, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean decideUserPolicyAssign(ByteString domain, ByteString currentUser, Object userData, S3UserPolicy userPolicy){
+        //TODO : Romain
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    
+    //------------------------
+    //          OLD API
+    //------------------------
     @Override
     public boolean decideUpdate(AntidotePB.ApbBoundObject object, AntidotePB.ApbUpdateOperation op, Object userData, Map<String, Collection<ByteString>> policies) {
-        //TODO : Romain : todo
-        //TODO : Romain : interpret the operation performed and check for this kind of object & operation
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("OLD API.");
     }
-
     @Override
     public boolean decideRead(AntidotePB.ApbBoundObject object, Object userData, Map<String, Collection<ByteString>> policies) {
-        //TODO : Romain : todo
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("OLD API.");
     }
-
     @Override
     public boolean decidePolicyAssign(ByteString bucket, ByteString key, Collection<ByteString> oldPolicy, Collection<ByteString> newPolicy, Object userData, Map<String, Collection<ByteString>> policies) {
-        //TODO : Romain : todo
-        //TODO : Romain : compare the two policies and check there is no removal of the ownership
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("OLD API.");
     }
-
     @Override
     public boolean decidePolicyRead(ByteString bucket, ByteString key, Object userData, Map<String, Collection<ByteString>> policies) {
-        //TODO : Romain : todo
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("OLD API.");
     }
-
-    /**
-     * Returns the Map of ACLs and Policies needed for accessing an object
-     * @param bucket original bucket of the object that is read
-     * @param key object key
-     * @return requestedPolicies Map of the requested policies to Download
-     */
     @Override
     public Map<String, ObjectInBucket> requestedPolicies(ByteString bucket, ByteString key) {
-        /*TreeMap<String, ObjectInBucket> requestedPolicies = new TreeMap<>();
-        ByteString aclBucket = getAclBucket(bucket);
-        requestedPolicies.put("objectACL", new ObjectInBucket(aclBucket, key));
-        requestedPolicies.put("bucketACL", new ObjectInBucket(bucket, ByteString.copyFromUtf8("policy")));
-        requestedPolicies.put("bucketPolicy", new ObjectInBucket(bucket, key));
-        requestedPolicies.put("userPolicy", new ObjectInBucket(this.userBucket, key));
-        return requestedPolicies;*/
-        //TODO : Romain : todo
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("OLD API.");
     }
-    
 }

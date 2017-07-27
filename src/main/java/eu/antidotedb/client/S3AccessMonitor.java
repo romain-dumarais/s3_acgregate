@@ -2,7 +2,9 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
+import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
@@ -115,11 +117,11 @@ public class S3AccessMonitor extends AccessMonitor{
             throw new AccessControlException("ACL read is not allowed");
         }else{
             if(isBucketACL){
-                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, user), user);
+                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, user));
             }
             else{
                 if(key==null){throw new UnsupportedOperationException("ACL key can not be null");}
-                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.objectACL(key, user), user);
+                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.objectACL(key, user));
             }
         }
     }
@@ -133,7 +135,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param user ID of the user for which the ACL is read 
      * @return 
      */
-    private Collection<? extends ByteString> readACLUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey, ByteString user){
+    private Collection<? extends ByteString> readACLUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -250,6 +252,7 @@ public class S3AccessMonitor extends AccessMonitor{
     /**
      * helper to merge concurrent updates for Policy objects
      * @param policies set of concurrent objects
+     * @param isUserPolicy flag for return Policy type
      * @return minimalPolicy the policy object with the intersection of the groups and statements
      */
     public S3Policy policyMergerHelper(List<S3Policy> policies, boolean isUserPolicy){
@@ -298,9 +301,33 @@ public class S3AccessMonitor extends AccessMonitor{
 
     private boolean isreadACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
+        boolean accessDecision=false;
+        ByteString domain=currentDomain(connection);
+        ByteString currentUser = super.currentUser(connection);
+        Object userData = super.currentUserData(connection);
+        S3BucketACL bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
+        S3BucketPolicy bucketPolicy;
+        S3UserPolicy userPolicy;
         
-        //return decision(currentUser, currentDomain, operation, policies, acls, userData);
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+        if(isBucketACL){
+            accessDecision = this.procedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+        }else{
+            S3ObjectACL objectACL;
+            accessDecision = this.procedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+        }
+        /*String operation;
+        if(isBucketACL){operation="readBucketACL";}else{operation="readObjectACL";}
+        S3BucketACL bucketACL;
+        S3Request request=new S3Request(currentDomain(connection), super.currentUser(connection), super.currentUserData(connection), bucket, key, operation);
+        if(!isBucketACL){
+            S3ObjectACL objectACL;
+            readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), key, key);
+            request.addObjectACL(objectACL);
+        }
+        request.addBucketACL(bucketACL);
+        request.addBucketPolicy();
+        request.addUserPolicy();*/
+        return accessDecision;
     }
 
     private boolean isAssignACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBbucketACL, ByteString bucket, ByteString key) {
@@ -314,8 +341,4 @@ public class S3AccessMonitor extends AccessMonitor{
     private boolean isAssignPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
-    /*
-    private boolean decision(ByteString currentUser, ByteString domain, S3Operation operation, Object userData, S3S3BucketACL bucketACL){
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
-    }*/
 }

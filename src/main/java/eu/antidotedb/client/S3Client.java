@@ -41,7 +41,6 @@ public final class S3Client extends SecureAntidoteClient{
     
     //INTERACTIVE
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
-        //TODO : Romain
         if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         S3InteractiveTransaction tx = new S3InteractiveTransaction(this, accessMonitor);
         accessMonitor.setCurrentUser(tx.connection, user);

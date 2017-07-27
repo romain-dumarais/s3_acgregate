@@ -1,6 +1,7 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
 
 /**
@@ -40,14 +41,15 @@ public class S3DomainManager{
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    // TODO : rootTransaction : create SecuredTransactions with root credentials
-    // copy from S3 client
-    
-    
-    //reduced API to start root transactions
+    //reduced API to start a root interactive transaction
     public S3InteractiveTransaction startTransaction(){
-        //TODO : Romain : start transaction with user = domain
-        throw new UnsupportedOperationException("not implemented yet");
+        S3AccessMonitor accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
+        S3InteractiveTransaction tx;
+        //TODO : Romain : test how "new Client()" works
+        tx = new S3InteractiveTransaction(new S3Client(), accessMonitor);
+        accessMonitor.setCurrentUser(tx.connection, domain);
+        accessMonitor.setDomain(tx.connection, domain);
+        return tx;
     }
     
     //get keylink mapping
