@@ -298,6 +298,7 @@ public class S3AccessMonitor extends AccessMonitor{
 
     private boolean isreadACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
+        
         //return decision(currentUser, currentDomain, operation, policies, acls, userData);
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }

@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * TODO : Romain : everything
+ * TODO : Romain : remove class
  * @author romain-dumarais
  */
 public class S3DecisionProcedure implements DecisionProcedure {
