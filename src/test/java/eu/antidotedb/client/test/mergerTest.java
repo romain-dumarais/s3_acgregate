@@ -7,7 +7,6 @@ import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.decision.S3DecisionProcedure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.junit.Assert;
@@ -18,7 +17,7 @@ import org.junit.Test;
  * @author romain-dumarais
  */
 public class mergerTest {
-    final S3AccessMonitor accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
+    final S3AccessMonitor accessMonitor = new S3AccessMonitor();
     final Bucket<String> bucket1=Bucket.create("testbucket");
     final ByteString domain = ByteString.copyFromUtf8("test_domain");
     

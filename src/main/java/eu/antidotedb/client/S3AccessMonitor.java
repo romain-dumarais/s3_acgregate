@@ -9,10 +9,12 @@ import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
+import eu.antidotedb.client.decision.DecisionProcedure;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.messages.AntidoteRequest;
 import eu.antidotedb.client.messages.AntidoteResponse;
+import eu.antidotedb.client.transformer.Transformer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,21 +22,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class extends the Access Monitor transformer to S3 Access Control smeantics
+ * This class performs the Access Control main process. transformer to S3 Access Control smeantics
+ * 
+ * - Override the communication with the Protocol Buffer
+ * - requests the different Access Ressources in the security Bucket and domain Bucket
+ * - calls the DecisionProcedure for every request
  * the differences in the management of user/bucket/object ACL/policies are hard coded
  * @author romain-dumarais
  */
 public class S3AccessMonitor extends AccessMonitor{
+    private final S3DecisionProcedure decisionprocedure = new S3DecisionProcedure();
     private final S3KeyLink keyLink=new S3KeyLink();
+    private final Map<Connection, ByteString> userMapping = new HashMap<>();
+    private final Map<Connection, Object> userDataMapping = new HashMap<>();
     private final Map<Connection,ByteString> domainMapping = new HashMap();
     
-    
-    public S3AccessMonitor(S3DecisionProcedure proc) {
-        super(proc);
+    public S3AccessMonitor() {
+        super(null);
     }
     
-    private ByteString currentDomain(Connection connection){
-        return domainMapping.get(connection);
+    //-----------------------------------------------------------
+    //              Transaction properties managemenet
+    //-----------------------------------------------------------
+    
+    @Override
+    void setCurrentUser(Connection connection, ByteString userid) {
+        userMapping.put(connection, userid);
+    }
+
+    @Override
+    void unsetCurrentUser(Connection connection) {
+        userMapping.remove(connection);
+    }
+    
+    @Override
+    public void setUserData(Connection connection, Object userData) {
+        this.userDataMapping.put(connection, userData);
+    }
+
+    @Override
+    void unsetUserData(Connection connection) {
+        userDataMapping.remove(connection);
     }
     
     void setDomain(Connection connection, ByteString domain) {
@@ -45,10 +73,26 @@ public class S3AccessMonitor extends AccessMonitor{
         domainMapping.remove(connection);
     }
     
-    /*
-    Override the communication with the Protocol Buffer
-    requests the different Access Ressources in the security Bucket and domain Bucket
-    prevent to write directly in the Security Bucket.*/
+    //--------------- GETTERS -----------------
+    
+    private ByteString currentUser(Connection connection) {
+        return userMapping.get(connection);
+    }
+    
+    private ByteString currentDomain(Connection connection){
+        return domainMapping.get(connection);
+    }
+
+    private Object currentUserData(Connection connection) {
+        return userDataMapping.get(connection);
+    }
+    
+    
+    //-----------------------------------------------------------
+    //              Access Resources Management
+    //-----------------------------------------------------------
+    
+    //--------------- ACLs -----------------
     
     /**
      * method called by the transaction helpers, to : check if the user has the right to assign ACL & assign ACL
@@ -149,6 +193,8 @@ public class S3AccessMonitor extends AccessMonitor{
     }
     
     
+    //--------------- Policies -----------------
+    
     
     void assignPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key, ByteString policyValue){
         if(!isAssignPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
@@ -236,7 +282,6 @@ public class S3AccessMonitor extends AccessMonitor{
      * @return concurrentPolicies collection of concurrent policies
      */
     Collection<? extends ByteString> readPolicyUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString policyKey){
-        //TODO : Romain : readPolicy
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -256,7 +301,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @return minimalPolicy the policy object with the intersection of the groups and statements
      */
     public S3Policy policyMergerHelper(List<S3Policy> policies, boolean isUserPolicy){
-        //TODO : Romain : switch to private
+        //TODO : Romain : make this private after tests
         switch(policies.size()){
             case(0):
                 throw new UnsupportedOperationException("empty list");
@@ -287,46 +332,28 @@ public class S3AccessMonitor extends AccessMonitor{
         }
     }
     
-    @Override
-    void assignPermissions(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString txid, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
-        throw new UnsupportedOperationException("Not supported : old API"); //TODO : Romain
-    }
     
-    /*
-    process the Decision algorithm : 
-    is the user the domain root ? Is the user known in this domain ? Is
-    there any explicit deny ? Any explicit allow ?
-    If needed, requests a group Policy
-    */
+    //--------------- Calls to DecisionProcedure -----------------
+    //TODO : Romain : parse these calls inside the read/assign
+    
+    
 
     private boolean isreadACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
         boolean accessDecision=false;
         ByteString domain=currentDomain(connection);
-        ByteString currentUser = super.currentUser(connection);
-        Object userData = super.currentUserData(connection);
+        ByteString currentUser = currentUser(connection);
+        Object userData = currentUserData(connection);
         S3BucketACL bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
         S3BucketPolicy bucketPolicy;
         S3UserPolicy userPolicy;
         
         if(isBucketACL){
-            accessDecision = this.procedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+            accessDecision = this.decisionprocedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
         }else{
             S3ObjectACL objectACL;
-            accessDecision = this.procedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+            accessDecision = this.decisionprocedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
         }
-        /*String operation;
-        if(isBucketACL){operation="readBucketACL";}else{operation="readObjectACL";}
-        S3BucketACL bucketACL;
-        S3Request request=new S3Request(currentDomain(connection), super.currentUser(connection), super.currentUserData(connection), bucket, key, operation);
-        if(!isBucketACL){
-            S3ObjectACL objectACL;
-            readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), key, key);
-            request.addObjectACL(objectACL);
-        }
-        request.addBucketACL(bucketACL);
-        request.addBucketPolicy();
-        request.addUserPolicy();*/
         return accessDecision;
     }
 
@@ -340,5 +367,12 @@ public class S3AccessMonitor extends AccessMonitor{
 
     private boolean isAssignPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }
+    
+    
+
+    @Override
+    public Transformer newTransformer(Transformer downstream, Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain : intercept database calls
     }
 }

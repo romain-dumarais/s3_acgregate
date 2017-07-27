@@ -10,11 +10,14 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * this class performes the access decisions in an function-oriented way
+ * this class performes the access decisions in an function-oriented way : 
+ * is the user the domain root ? Is the user known in this domain ? 
+ * Is there any explicit deny ? Any explicit allow ?
+ * If needed, requests a group Policy
  * @author romain-dumarais
  * TODO : Romain : add groups
  */
-public class S3DecisionProcedure implements DecisionProcedure {
+public class S3DecisionProcedure {
     
     //--------------------------------
     //      Object Management
@@ -79,28 +82,4 @@ public class S3DecisionProcedure implements DecisionProcedure {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    
-    //------------------------
-    //          OLD API
-    //------------------------
-    @Override
-    public boolean decideUpdate(AntidotePB.ApbBoundObject object, AntidotePB.ApbUpdateOperation op, Object userData, Map<String, Collection<ByteString>> policies) {
-        throw new UnsupportedOperationException("OLD API.");
-    }
-    @Override
-    public boolean decideRead(AntidotePB.ApbBoundObject object, Object userData, Map<String, Collection<ByteString>> policies) {
-        throw new UnsupportedOperationException("OLD API.");
-    }
-    @Override
-    public boolean decidePolicyAssign(ByteString bucket, ByteString key, Collection<ByteString> oldPolicy, Collection<ByteString> newPolicy, Object userData, Map<String, Collection<ByteString>> policies) {
-        throw new UnsupportedOperationException("OLD API.");
-    }
-    @Override
-    public boolean decidePolicyRead(ByteString bucket, ByteString key, Object userData, Map<String, Collection<ByteString>> policies) {
-        throw new UnsupportedOperationException("OLD API.");
-    }
-    @Override
-    public Map<String, ObjectInBucket> requestedPolicies(ByteString bucket, ByteString key) {
-        throw new UnsupportedOperationException("OLD API.");
-    }
 }
