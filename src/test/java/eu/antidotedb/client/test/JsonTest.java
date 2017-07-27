@@ -75,14 +75,12 @@ public class JsonTest {
         S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList("getValues", "set"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
         S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket2"), "another condition block");
         S3UserPolicy policy1 = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("user_group1")), Arrays.asList(statement1, statement2, statement3, statement4));
-        String stringPolicy = policy1.encode().toString();
+        String stringPolicy = policy1.encode().toStringUtf8();
         //System.out.println(stringPolicy);
         
         S3UserPolicy policy2 = new S3UserPolicy();
         policy2.decode(stringPolicy);
         
-        System.err.println("policyRound : "+policy1.equals(policy2));
-
         //policy1 is included in policy2
         for(int i=0;i<policy1.getStatements().size();i++){
             S3Statement statPolicy1, statPolicy2;

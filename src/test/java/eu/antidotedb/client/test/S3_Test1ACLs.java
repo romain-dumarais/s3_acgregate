@@ -2,7 +2,6 @@ package eu.antidotedb.client.test;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.AntidoteStaticTransaction;
-import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CounterRef;
 import eu.antidotedb.client.CrdtCounter;
 import eu.antidotedb.client.IntegerRef;
@@ -20,7 +19,6 @@ import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -111,8 +109,6 @@ public class S3_Test1ACLs extends S3Test {
         }
         
         //create User Policies
-        Bucket<String> userBucket = Bucket.create(antidoteClient.loginAsRoot(domain).getuserBucket().toStringUtf8());
-        Set<String> emptypermissions =new HashSet<String>();
         try{
             S3DomainManager rootinterface = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx2 = rootinterface.startTransaction();

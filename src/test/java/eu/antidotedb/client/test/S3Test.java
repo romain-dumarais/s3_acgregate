@@ -63,7 +63,7 @@ public class S3Test {
         S3_Test2Policies test2 = new S3_Test2Policies();
         S3_Test3Attacks test3 = new S3_Test3Attacks();
         test1.scenario_0();
-        test1.scenario_1();
+        test1.scenario_1();/*
         test1.scenario_2();
         test1.scenario_3();
         test1.scenario_4();
@@ -76,6 +76,6 @@ public class S3Test {
         test2.scenario_8();
         test2.scenario_9();
         test2.scenario_10();
-        test3.scenario_11();
+        test3.scenario_11();*/
     }
 }
