@@ -78,9 +78,8 @@ public class JsonTest {
         String stringPolicy = policy1.encode().toString();
         //System.out.println(stringPolicy);
         
-        JsonObject value = Json.parse(stringPolicy).asObject();
         S3UserPolicy policy2 = new S3UserPolicy();
-        policy2.decode(value);
+        policy2.decode(stringPolicy);
         
         System.err.println("policyRound : "+policy1.equals(policy2));
 
