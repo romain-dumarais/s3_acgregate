@@ -1,12 +1,12 @@
 package eu.antidotedb.client.accessresources;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +16,6 @@ import java.util.Set;
  * @author romain-dumarais
  */
 public final class S3BucketPolicy extends S3Policy{
-    
     
     public S3BucketPolicy(List<ByteString> groups, List<S3Statement> statements) {
         super(groups, statements);
@@ -30,16 +29,14 @@ public final class S3BucketPolicy extends S3Policy{
      * updates the current policy object read from the database
      * @param tx
      * @param bucketID
+     * TODO : Romain : make static and not use a cast
      */
     @Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString bucketID){
-        Collection<? extends ByteString> policy = tx.readPolicyHelper(false, bucketID);
-        List<S3Statement> policystatements= new ArrayList<>();
-        List<ByteString> policyGroups = new ArrayList<>();
-        //TODO : Romain : parse JSON result
+        S3BucketPolicy remotePolicy = (S3BucketPolicy) tx.readPolicyHelper(false, bucketID);
         super.statements.clear(); super.groups.clear();
-        policyGroups.stream().forEach((group) -> {super.addGroup(group);});
-        policystatements.stream().forEach((statement) -> {super.addStatement(statement);});
+        remotePolicy.getGroups().stream().forEach((group) -> {super.addGroup(group);});
+        remotePolicy.getStatements().stream().forEach((statement) -> {super.addStatement(statement);});
     }
     
     /**
@@ -49,14 +46,12 @@ public final class S3BucketPolicy extends S3Policy{
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString bucketID){
-        Set<String> policygroups=new HashSet<>(), policystatements=new HashSet<>();
-        //TODO : Romain : parse to JSON values
-        tx.assignPolicyHelper(false, bucketID, policygroups, policystatements);
-        throw new UnsupportedOperationException("not implemented yet");
+        tx.assignPolicyHelper(false, bucketID, this.encode());
     }
     
     @Override
-    public void decode(JsonObject value) {
+    public void decode(String stringPolicy) {
+        JsonObject value = Json.parse(stringPolicy).asObject();
         JsonArray jsonGroups = value.get("Groups").asArray();
         JsonArray jsonStatements = value.get("Statements").asArray();
         for(JsonValue jsongroup : jsonGroups){

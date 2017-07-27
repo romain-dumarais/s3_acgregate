@@ -2,12 +2,16 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Policy;
+import eu.antidotedb.client.accessresources.S3Statement;
+import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.messages.AntidoteRequest;
 import eu.antidotedb.client.messages.AntidoteResponse;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +72,7 @@ public class S3AccessMonitor extends AccessMonitor{
                 securityBucket = keyLink.securityBucket(bucket);
                 aclKey = keyLink.objectACL(key, user);
             }
-            AntidotePB.ApbUpdateObjects policyUpdateOp = AntidotePB.ApbUpdateObjects.newBuilder()
+            AntidotePB.ApbUpdateObjects aclUpdateOp = AntidotePB.ApbUpdateObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addUpdates(AntidotePB.ApbUpdateOp.newBuilder()
                             .setBoundobject(AntidotePB.ApbBoundObject.newBuilder()
@@ -79,7 +83,7 @@ public class S3AccessMonitor extends AccessMonitor{
                                     .setPolicyop(AntidotePB.ApbPolicyUpdate.newBuilder()
                                             .addAllPermissions(permissions))))
                     .build();
-            AntidoteRequest.MsgUpdateObjects request = AntidoteRequest.of(policyUpdateOp);
+            AntidoteRequest.MsgUpdateObjects request = AntidoteRequest.of(aclUpdateOp);
             //this bypasses transformers of the connection
             AntidoteResponse.Handler<AntidotePB.ApbOperationResp> responseExtractor = request.readResponseExtractor();
             AntidoteResponse response = request.accept(downstream);
@@ -88,7 +92,7 @@ public class S3AccessMonitor extends AccessMonitor{
 
             AntidotePB.ApbOperationResp operationResp = response.accept(responseExtractor);
             if (!operationResp.getSuccess()) {
-                throw new AntidoteException("Could not perform policy update (error code: " + operationResp.getErrorcode() + ")");
+                throw new AntidoteException("Could not perform S3 ACL update (error code: " + operationResp.getErrorcode() + ")");
             }
         }else{
             throw new AccessControlException("Permission assignment not allowed");
@@ -108,7 +112,7 @@ public class S3AccessMonitor extends AccessMonitor{
      */
     Collection<? extends ByteString> readACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key, ByteString user){
         if(!isreadACLAllowed(downstream, connection, descriptor, isBucketACL, bucket, key)){
-            throw new AccessControlException("Permission assignment not allowed");
+            throw new AccessControlException("ACL read is not allowed");
         }else{
             if(isBucketACL){
                 return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, user), user);
@@ -144,9 +148,9 @@ public class S3AccessMonitor extends AccessMonitor{
     
     
     
-    void assignPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key, Collection<String> groups, Collection<String> statements){
+    void assignPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key, ByteString policyValue){
         if(!isAssignPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
-            throw new AccessControlException("Policy read not allowed");
+            throw new AccessControlException("Policy assign not allowed");
         }else{
             ByteString policyBucket, policyKey;
             if(isUserPolicy){
@@ -157,36 +161,132 @@ public class S3AccessMonitor extends AccessMonitor{
                 policyBucket = keyLink.securityBucket(key);
                 policyKey = keyLink.bucketPolicy();
             }
-            //TODO : Romain : assign Policy
-            throw new UnsupportedOperationException("Not supported yet."); 
-        }
-    }
-    
-    Collection<? extends ByteString> readPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key){
-        if(!isreadPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
-            throw new AccessControlException("Policy read not allowed");
-        }else{
-            if(isUserPolicy){
-                return readPolicyUnchecked(downstream, descriptor, keyLink.userBucket(currentDomain(connection)), keyLink.userPolicy(key));
-            }else{
-                return readPolicyUnchecked(downstream, descriptor, keyLink.securityBucket(key),keyLink.bucketPolicy());
+            //policy assignment
+            AntidotePB.ApbUpdateObjects s3policyUpdateOp = AntidotePB.ApbUpdateObjects.newBuilder()
+                    .setTransactionDescriptor(descriptor)
+                    .addUpdates(AntidotePB.ApbUpdateOp.newBuilder()
+                        .setBoundobject(AntidotePB.ApbBoundObject.newBuilder()
+                            .setBucket(policyBucket)
+                            .setKey(policyKey)
+                            .setType(AntidotePB.CRDT_type.MVREG))
+                        .setOperation(AntidotePB.ApbUpdateOperation.newBuilder()
+                            .setRegop(AntidotePB.ApbRegUpdate.newBuilder()
+                            .setValue(policyValue))))
+                .build();
+            AntidoteRequest.MsgUpdateObjects request = AntidoteRequest.of(s3policyUpdateOp);
+            
+            //Bypass connection transformers
+            AntidoteResponse.Handler<AntidotePB.ApbOperationResp> responseExtractor = request.readResponseExtractor();
+            AntidoteResponse response = request.accept(downstream);
+            //handle errors
+            if (responseExtractor == null) {
+            throw new IllegalStateException("Could not get response extractor for policy assign request");
+            }
+            if (response == null) {
+                throw new AntidoteException("Missing response for " + request);
+            }
+            AntidotePB.ApbOperationResp operationResp = response.accept(responseExtractor);
+            if (!operationResp.getSuccess()) {
+                throw new AntidoteException("Could not perform S3 policy update (error code: " + operationResp.getErrorcode() + ")");
             }
         }
     }
+    
+    /**
+     * reads in a database a policy 
+     * @param downstream handled by the transaction call
+     * @param connection handled by the transaction call
+     * @param descriptor handled by the transaction call
+     * @param isUserPolicy if {@code true} returns a S3UserPolicy object, if {@code false} returns a S3BucketPolicy
+     * @param key either the bucket key or the user ID
+     * @return readPolicy
+     */
+    S3Policy readPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key){
+        if(!isreadPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
+            throw new AccessControlException("Policy read not allowed");
+        }else{
+            ArrayList<S3Policy> policiesList = new ArrayList<>();
+            if(isUserPolicy){
+                Collection<? extends ByteString> concurrentPolicies = readPolicyUnchecked(downstream, descriptor, keyLink.userBucket(currentDomain(connection)), keyLink.userPolicy(key));
+                for(ByteString stringPolicy:concurrentPolicies){
+                    S3UserPolicy userPolicy = new S3UserPolicy();
+                    userPolicy.decode(stringPolicy.toStringUtf8());
+                    policiesList.add(userPolicy);
+                }
+            }else{
+                Collection<? extends ByteString> concurrentPolicies = readPolicyUnchecked(downstream, descriptor, keyLink.securityBucket(key),keyLink.bucketPolicy());
+                for(ByteString stringPolicy:concurrentPolicies){
+                    S3BucketPolicy bucketPolicy = new S3BucketPolicy();
+                    bucketPolicy.decode(stringPolicy.toStringUtf8());
+                    policiesList.add(bucketPolicy);
+                }
+            }
+            return policyMergerHelper(policiesList, isUserPolicy);
+        }
+    }
 
-    Collection<? extends ByteString> readPolicyUnchecked(SocketSender downstream, ByteString descriptor, ByteString bucket, ByteString policyKey){
+    /**
+     * reads a Policy in the Database
+     * @param downstream
+     * @param descriptor
+     * @param bucket
+     * @param policyKey
+     * @return concurrentPolicies collection of concurrent policies
+     */
+    Collection<? extends ByteString> readPolicyUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString policyKey){
         //TODO : Romain : readPolicy
-        throw new UnsupportedOperationException("Not supported yet."); 
+        AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
+                    .setTransactionDescriptor(descriptor)
+                    .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
+                    .setBucket(securityBucket)
+                    .setKey(policyKey)
+                    .setType(AntidotePB.CRDT_type.MVREG));
+
+        AntidotePB.ApbReadObjectsResp policyResp = downstream.handle(readRequest
+                    .build()).accept(new AntidoteResponse.MsgReadObjectsResp.Extractor());
+        return policyResp.getObjects(0).getMvreg().getValuesList();
     }
     
-    private S3Policy policyMergerHelper(List<S3Policy> policies){
-        
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    /**
+     * helper to merge concurrent updates for Policy objects
+     * @param policies set of concurrent objects
+     * @return minimalPolicy the policy object with the intersection of the groups and statements
+     */
+    public S3Policy policyMergerHelper(List<S3Policy> policies, boolean isUserPolicy){
+        //TODO : Romain : switch to private
+        switch(policies.size()){
+            case(0):
+                throw new UnsupportedOperationException("empty list");
+            case(1):
+                return policies.get(0);
+            default:
+                //TODO : Romain : not optimal
+                S3Policy minimalPolicy;
+                if(isUserPolicy){minimalPolicy = new S3UserPolicy();
+                }else{minimalPolicy = new S3BucketPolicy();}
+                List<ByteString> groupList = policies.get(0).getGroups();
+                List<S3Statement> statementsList = policies.get(0).getStatements();
+                for(ByteString group : groupList){
+                    boolean isIntersection=true;
+                    for(S3Policy policy : policies){
+                        isIntersection = isIntersection && policy.containsGroup(group);
+                    }
+                    if(isIntersection){minimalPolicy.addGroup(group);}
+                }
+                for(S3Statement statement : statementsList){
+                    boolean isIntersection=true;
+                    for(S3Policy policy : policies){
+                        isIntersection = isIntersection && policy.containsStatement(statement);
+                    }
+                    if(isIntersection){minimalPolicy.addStatement(statement);}
+                }
+                return minimalPolicy;
+        }
     }
     
     @Override
     void assignPermissions(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString txid, ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions) {
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+        throw new UnsupportedOperationException("Not supported : old API"); //TODO : Romain
     }
     
     /*
@@ -197,6 +297,8 @@ public class S3AccessMonitor extends AccessMonitor{
     */
 
     private boolean isreadACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key) {
+        //get requested policies
+        //return decision(currentUser, currentDomain, operation, policies, acls, userData);
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
 
@@ -211,5 +313,8 @@ public class S3AccessMonitor extends AccessMonitor{
     private boolean isAssignPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {
         throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
-
+    /*
+    private boolean decision(ByteString currentUser, ByteString domain, S3Operation operation, Object userData, S3S3BucketACL bucketACL){
+        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    }*/
 }

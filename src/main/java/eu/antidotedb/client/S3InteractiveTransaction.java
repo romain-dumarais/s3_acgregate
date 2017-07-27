@@ -1,6 +1,7 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.decision.AccessControlException;
 import java.util.Collection;
 
@@ -47,12 +48,12 @@ public class S3InteractiveTransaction extends SecuredInteractiveTransaction {
         accessMonitor.assignACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), isBucketACL, bucket, key, userid, permissions);
     }
 
-    public Collection<? extends ByteString> readPolicyHelper(boolean isUserPolicy, ByteString key) {
+    public S3Policy readPolicyHelper(boolean isUserPolicy, ByteString key) {
         return accessMonitor.readPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), isUserPolicy, key);
     }
 
-    public void assignPolicyHelper(boolean isUserPolicy, ByteString key, Collection<String> groups, Collection<String> statements) {
-        accessMonitor.assignPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), isUserPolicy, key,groups,statements);
+    public void assignPolicyHelper(boolean isUserPolicy, ByteString key, ByteString policyValue) {
+        accessMonitor.assignPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), isUserPolicy, key,policyValue);
     }
     
     @Override

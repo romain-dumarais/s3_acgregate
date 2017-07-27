@@ -4,7 +4,6 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
 import java.util.Collection;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * TODO : Romain : everything
@@ -16,7 +15,10 @@ public class S3DecisionProcedure implements DecisionProcedure {
     
     
     public S3DecisionProcedure(){
-        throw new AccessControlException("unsupported operation");
+        //throw new AccessControlException("unsupported operation");
+        // for tests
+        this.owner=ByteString.copyFromUtf8("remote_after_tests");
+        this.userBucket=ByteString.copyFromUtf8("remove_after_tests");
     }
     
     public S3DecisionProcedure(String ownerKey){

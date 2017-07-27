@@ -17,7 +17,7 @@ import java.util.List;
  */
 public abstract class S3Policy {
 
-    
+    //TODO : Romain : domain flag read-only
     protected List<S3Statement> statements;
     protected List<ByteString> groups;
     
@@ -51,20 +51,16 @@ public abstract class S3Policy {
      * @param tx the current transaction
      * @param key either the bucket key or the userID
      */
-    public void readPolicy(S3InteractiveTransaction tx, ByteString key){
-        throw new UnsupportedOperationException("abstract class : not permitted");
-    }
+    public abstract void readPolicy(S3InteractiveTransaction tx, ByteString key);
 
     /**
      * assigns the current Policy object value to the remote policy 
      * @param tx the current transaction
      * @param key either the bucket key or the userID
      */
-    public void assignPolicy(S3InteractiveTransaction tx, ByteString key){
-        throw new UnsupportedOperationException("abstract class : not permitted");
-    }
+    public abstract void assignPolicy(S3InteractiveTransaction tx, ByteString key);
     
-    public JsonObject encode(){
+    public ByteString encode(){
         JsonArray jsongroups = Json.array(), jsonstatements = Json.array();
         this.groups.stream().forEach((group) -> {
             jsongroups.add(group.toStringUtf8());
@@ -75,10 +71,10 @@ public abstract class S3Policy {
         JsonObject jsonPolicy = Json.object();
         jsonPolicy.add("Groups", jsongroups);
         jsonPolicy.add("Statements", jsonstatements);
-        return jsonPolicy;
+        return ByteString.copyFromUtf8(jsonPolicy.toString());
     }
     
-    public abstract void decode(JsonObject value);
+    public abstract void decode(String stringPolicy);
     
     public boolean explicitAllow(/*all the needed args + optional userData*/){
         throw new UnsupportedOperationException("not implemented yet");
@@ -97,5 +93,13 @@ public abstract class S3Policy {
     }
     public ByteString getGroup(int index){
         return this.groups.get(index);
+    }
+
+    //helpers for comparison
+    public boolean containsGroup(ByteString group) {
+        return this.groups.contains(group);
+    }
+    public boolean containsStatement(S3Statement statement) {
+        return this.statements.contains(statement);
     }
 }

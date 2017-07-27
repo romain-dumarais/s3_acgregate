@@ -1,12 +1,12 @@
 package eu.antidotedb.client.accessresources;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,14 +32,10 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
-        Collection<? extends ByteString> policy = tx.readPolicyHelper(true, userID);
-        List<S3Statement> policystatements= new ArrayList<>();
-        List<ByteString> policyGroups = new ArrayList<>();
-        //TODO : Romain : parse JSON result
-        
+        S3UserPolicy remotePolicy = (S3UserPolicy) tx.readPolicyHelper(true, userID);
         super.statements.clear(); super.groups.clear();
-        policyGroups.stream().forEach((group) -> {super.addGroup(group);});
-        policystatements.stream().forEach((statement) -> {super.addStatement(statement);});
+        remotePolicy.getGroups().stream().forEach((group) -> {super.addGroup(group);});
+        remotePolicy.getStatements().stream().forEach((statement) -> {super.addStatement(statement);});
     }
     
     /**
@@ -49,14 +45,12 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
-        Set<String> policygroups=new HashSet<>(), policystatements=new HashSet<>();
-        //TODO : Romain : parse to JSON objects
-        tx.assignPolicyHelper(true, userkey, policygroups, policystatements);
-        throw new UnsupportedOperationException("not implemented yet");
+        tx.assignPolicyHelper(true, userkey, this.encode());
     }
     
     @Override
-    public void decode(JsonObject value) {
+    public void decode(String stringPolicy) {
+        JsonObject value = Json.parse(stringPolicy).asObject();
         this.statements.clear(); this.groups.clear();
         JsonArray jsonGroups = value.get("Groups").asArray();
         JsonArray jsonStatements = value.get("Statements").asArray();
