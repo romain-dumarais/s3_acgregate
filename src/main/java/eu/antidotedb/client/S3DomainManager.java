@@ -1,7 +1,6 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
 
 /**
@@ -43,7 +42,7 @@ public class S3DomainManager{
     
     //reduced API to start a root interactive transaction
     public S3InteractiveTransaction startTransaction(){
-        S3AccessMonitor accessMonitor = new S3AccessMonitor(new S3DecisionProcedure());
+        S3AccessMonitor accessMonitor = new S3AccessMonitor();
         S3InteractiveTransaction tx;
         //TODO : Romain : test how "new Client()" works
         tx = new S3InteractiveTransaction(new S3Client(), accessMonitor);

@@ -2,8 +2,6 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.decision.DecisionProcedure;
-import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.transformer.StaticInteractiveTransformer;
 import eu.antidotedb.client.transformer.TransformerFactory;
 import java.util.ArrayList;
@@ -20,7 +18,11 @@ import java.util.List;
 public final class S3Client extends AntidoteClient{
     private final S3AccessMonitor accessMonitor = new S3AccessMonitor();
     
-    //BUILDERS
+    //----------------------------------------
+    //          BUILDERS
+    //----------------------------------------
+    
+    
     public S3Client(Host... hosts) {
         this(Collections.emptyList(), hosts);
     }
@@ -44,6 +46,10 @@ public final class S3Client extends AntidoteClient{
     public S3DomainManager loginAsRoot(ByteString domain){
         return new S3DomainManager(domain);
     }
+    
+    //----------------------------------------
+    //              TRANSACTIONS
+    //----------------------------------------
     
     //INTERACTIVE
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
@@ -83,8 +89,9 @@ public final class S3Client extends AntidoteClient{
         return noTransaction(user, domain, null);
     }
     
-    
+    //----------------------------------------
     //OVERRIDE ACGreGate & unsecure client API
+    //----------------------------------------
     
     @Override
     public InteractiveTransaction startTransaction() {

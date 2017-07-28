@@ -1,13 +1,10 @@
 package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.antidotepb.AntidotePB;
 import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * this class performes the access decisions in an function-oriented way : 
@@ -38,6 +35,8 @@ public class S3DecisionProcedure {
     //      ACL Management
     //--------------------------------
     
+    //--------- Bucket ACL ----------
+    
     public boolean decideBucketACLRead(ByteString domain, ByteString currentUser, Object userData, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         //TODO : Romain
         throw new UnsupportedOperationException("Not supported yet.");
@@ -47,6 +46,8 @@ public class S3DecisionProcedure {
         //TODO : Romain
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+    //--------- Object ACL ----------
     
     public boolean decideObjectACLRead(ByteString domain, ByteString currentUser, Object userData, S3ObjectACL objectACL, S3BucketACL bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         //TODO : Romain
@@ -62,6 +63,8 @@ public class S3DecisionProcedure {
     //      Policies Management
     //--------------------------------
     
+    //--------- Bucket Policy ----------
+    
     public boolean decideBucketPolicyRead(ByteString domain, ByteString currentUser, Object userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         //TODO : Romain
         throw new UnsupportedOperationException("Not supported yet.");
@@ -71,6 +74,8 @@ public class S3DecisionProcedure {
         //TODO : Romain
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+    //--------- User Policy ----------
     
     public boolean decideUserPolicyRead(ByteString domain, ByteString currentUser, Object userData, S3UserPolicy userPolicy){
         //TODO : Romain

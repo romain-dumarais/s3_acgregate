@@ -2,6 +2,7 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.accessresources.S3ACL;
 import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
@@ -9,7 +10,6 @@ import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
-import eu.antidotedb.client.decision.DecisionProcedure;
 import eu.antidotedb.client.decision.S3DecisionProcedure;
 import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.messages.AntidoteRequest;
@@ -106,7 +106,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param permissions 
      */
     void assignACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL,ByteString bucket, ByteString key, ByteString user, Collection<ByteString> permissions){
-        if(isAssignACLAllowed(downstream, connection, descriptor, isBucketACL, bucket, key)){ 
+        if(isOpACLAllowed(downstream, connection, descriptor, true, isBucketACL, bucket, key)){ 
             //assignment
             ByteString securityBucket, aclKey;
             if(isBucketACL){
@@ -157,7 +157,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @return permissions
      */
     Collection<? extends ByteString> readACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key, ByteString user){
-        if(!isreadACLAllowed(downstream, connection, descriptor, isBucketACL, bucket, key)){
+        if(!isOpACLAllowed(downstream, connection, descriptor, false,isBucketACL, bucket, key)){
             throw new AccessControlException("ACL read is not allowed");
         }else{
             if(isBucketACL){
@@ -253,23 +253,11 @@ public class S3AccessMonitor extends AccessMonitor{
         if(!isreadPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
             throw new AccessControlException("Policy read not allowed");
         }else{
-            ArrayList<S3Policy> policiesList = new ArrayList<>();
             if(isUserPolicy){
-                Collection<? extends ByteString> concurrentPolicies = readPolicyUnchecked(downstream, descriptor, keyLink.userBucket(currentDomain(connection)), keyLink.userPolicy(key));
-                for(ByteString stringPolicy:concurrentPolicies){
-                    S3UserPolicy userPolicy = new S3UserPolicy();
-                    userPolicy.decode(stringPolicy.toStringUtf8());
-                    policiesList.add(userPolicy);
-                }
+                return readPolicyUnchecked(downstream, descriptor, isUserPolicy, keyLink.userBucket(currentDomain(connection)), keyLink.userPolicy(key));
             }else{
-                Collection<? extends ByteString> concurrentPolicies = readPolicyUnchecked(downstream, descriptor, keyLink.securityBucket(key),keyLink.bucketPolicy());
-                for(ByteString stringPolicy:concurrentPolicies){
-                    S3BucketPolicy bucketPolicy = new S3BucketPolicy();
-                    bucketPolicy.decode(stringPolicy.toStringUtf8());
-                    policiesList.add(bucketPolicy);
-                }
+                return readPolicyUnchecked(downstream, descriptor, isUserPolicy, keyLink.securityBucket(key),keyLink.bucketPolicy());
             }
-            return policyMergerHelper(policiesList, isUserPolicy);
         }
     }
 
@@ -281,7 +269,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param policyKey
      * @return concurrentPolicies collection of concurrent policies
      */
-    Collection<? extends ByteString> readPolicyUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString policyKey){
+    S3Policy readPolicyUnchecked(SocketSender downstream, ByteString descriptor, boolean isUserPolicy, ByteString securityBucket, ByteString policyKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -291,7 +279,17 @@ public class S3AccessMonitor extends AccessMonitor{
 
         AntidotePB.ApbReadObjectsResp policyResp = downstream.handle(readRequest
                     .build()).accept(new AntidoteResponse.MsgReadObjectsResp.Extractor());
-        return policyResp.getObjects(0).getMvreg().getValuesList();
+        List<ByteString> concurrentPolicies = policyResp.getObjects(0).getMvreg().getValuesList();
+        
+        List<S3Policy> policiesList; policiesList = new ArrayList<>();
+        for(ByteString stringPolicy:concurrentPolicies){
+                    S3Policy policy;
+                    if(isUserPolicy){policy = new S3UserPolicy();
+                    }else{policy = new S3BucketPolicy();}
+                    policy.decode(stringPolicy.toStringUtf8());
+                    policiesList.add(policy);
+                }
+        return policyMergerHelper(policiesList, isUserPolicy);
     }
     
     /**
@@ -338,27 +336,30 @@ public class S3AccessMonitor extends AccessMonitor{
     
     
 
-    private boolean isreadACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL, ByteString bucket, ByteString key) {
+    private boolean isOpACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
-        boolean accessDecision=false;
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
         Object userData = currentUserData(connection);
-        S3BucketACL bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
-        S3BucketPolicy bucketPolicy;
-        S3UserPolicy userPolicy;
+        S3BucketACL bucketACL = new S3BucketACL(currentUser,readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser)));
+        //TODO : Romain : remove casts
+        S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, keyLink.securityBucket(bucket), keyLink.bucketPolicy());
+        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(key));
         
         if(isBucketACL){
-            accessDecision = this.decisionprocedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+            if(isAssign){
+                return this.decisionprocedure.decideBucketACLAssign(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+            }else{
+                return this.decisionprocedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+            }
         }else{
-            S3ObjectACL objectACL;
-            accessDecision = this.decisionprocedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+            S3ObjectACL objectACL = new S3ObjectACL(currentUser,readACLUnchecked(downstream, descriptor, bucket, key));
+            if(isAssign){
+                return this.decisionprocedure.decideObjectACLAssign(domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+            }else{
+                return this.decisionprocedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+            }
         }
-        return accessDecision;
-    }
-
-    private boolean isAssignACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBbucketACL, ByteString bucket, ByteString key) {
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
     }
 
     private boolean isreadPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {

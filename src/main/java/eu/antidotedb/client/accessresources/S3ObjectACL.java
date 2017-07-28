@@ -1,6 +1,5 @@
 package eu.antidotedb.client.accessresources;
 
-import eu.antidotedb.client.accessresources.S3ACL;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import java.util.Collection;
@@ -23,9 +22,21 @@ public class S3ObjectACL extends S3ACL{
     public S3ObjectACL(HashMap<String, String> rights) {
         super(rights);
     }
+    /**
+     * builder for Access Monitor
+     * @param user
+     * @param policyValues 
+     */
+    public S3ObjectACL(ByteString user, Collection<? extends ByteString> policyValues){
+        super(user, policyValues);
+    }
     
     /**
      * reads the right for a user in the database. Other users rights are not updated.
+     * @param tx
+     * @param bucket
+     * @param key
+     * @param userid
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
         //Policy policy = new Policy(bucket, key, ValueCoder.utf8String);
@@ -37,6 +48,11 @@ public class S3ObjectACL extends S3ACL{
 
     /**
      * assigns a certain right to a user. Does not modify the other users rights.
+     * @param tx
+     * @param bucket
+     * @param key
+     * @param userid
+     * @param right
      */
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
         tx.assignACLHelper(false, bucket, key, userid, encodeRight(right));
@@ -44,6 +60,10 @@ public class S3ObjectACL extends S3ACL{
     
      /**
      * assigns a the current policy to a user. Does not modify the other users rights.
+     * @param tx
+     * @param bucket
+     * @param key
+     * @param userid
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
         tx.assignACLHelper(false, bucket, key, userid, this.permissions.get(userid));
@@ -63,4 +83,5 @@ public class S3ObjectACL extends S3ACL{
             
         }
     }
+
 }

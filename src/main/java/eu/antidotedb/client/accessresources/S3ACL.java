@@ -1,11 +1,14 @@
 package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.decision.AccessControlException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class is just a handler to manage Policies from ACGregate
@@ -24,6 +27,16 @@ public abstract class S3ACL{
         for(String user:rights.keySet()){
             this.permissions.put(ByteString.copyFromUtf8(user), encodeRight(rights.get(user)));
         }
+    }
+    
+    /**
+     * builder for Access Monitor
+     * @param user 
+     * @param policyValues 
+     */
+    public S3ACL(ByteString user, Collection<? extends ByteString> policyValues){
+        this.permissions = new HashMap();
+        this.permissions.put(user, policyValues.stream().collect(Collectors.toSet()));
     }
     
     public String getRight(String userid){
@@ -107,12 +120,12 @@ public abstract class S3ACL{
         return result;
     }
     
-    public boolean explicitAllow(/*all the needed args*/){
+    public static boolean explicitAllow(/*all the needed args*/){
         //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public boolean explicitDeny(/*all the needed args*/){
+    public static boolean explicitDeny(/*all the needed args*/){
         //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }
