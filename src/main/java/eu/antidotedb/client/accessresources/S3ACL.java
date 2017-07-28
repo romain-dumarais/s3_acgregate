@@ -1,18 +1,15 @@
 package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.decision.AccessControlException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * This class is just a handler to manage Policies from ACGregate
- *  it represents just ACL as set of permissions
+ * this class represents just ACL as set of permissions
  * @author romain-dumarais
  */
 public abstract class S3ACL{
@@ -111,12 +108,14 @@ public abstract class S3ACL{
     }
     
     public static boolean explicitAllow(Collection<ByteString> acl,String operation){
-        //TODO : Romain
-        throw new UnsupportedOperationException("not implemented yet");
+        return acl.contains(ByteString.copyFromUtf8(operation));
     }
     
     public static boolean explicitDeny(Collection<ByteString> acl,String operation){
-        //TODO : Romain
-        throw new UnsupportedOperationException("not implemented yet");
+        if(acl.isEmpty()){
+            return false;
+        }else{
+            return !acl.contains(ByteString.copyFromUtf8(operation));
+        }
     }
 }

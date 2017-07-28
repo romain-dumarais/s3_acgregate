@@ -76,13 +76,15 @@ public abstract class S3Policy {
     
     public abstract void decode(String stringPolicy);
     
-    public boolean explicitAllow(/*all the needed args + optional userData*/){
+    public boolean explicitAllow(ByteString subject, String action, ByteString targetBucket, ByteString targetKey, Object userData){
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public boolean explicitDeny(/*all the needed args + optional userData*/){
+    public boolean explicitDeny(ByteString subject, String action, ByteString targetBucket, ByteString targetKey, Object userData){
         throw new UnsupportedOperationException("not implemented yet");
     }
+    
+    
     
     //helpers for tests
     public List<S3Statement> getStatements(){

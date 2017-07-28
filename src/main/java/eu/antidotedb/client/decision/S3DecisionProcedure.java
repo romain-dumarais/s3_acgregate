@@ -2,9 +2,7 @@ package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3ACL;
-import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Collection;
 
@@ -15,6 +13,7 @@ import java.util.Collection;
  * If needed, requests a group Policy
  * @author romain-dumarais
  * TODO : Romain : add groups
+ * TODO : Romain : refactor
  */
 public class S3DecisionProcedure {
     
