@@ -17,7 +17,7 @@ import java.util.List;
  * loginAsRoot → return an interface for root operations
  * @author romain-dumarais from a model from mweber_ukl
  */
-public final class S3Client extends SecureAntidoteClient{
+public final class S3Client extends AntidoteClient{
     private final S3AccessMonitor accessMonitor = new S3AccessMonitor();
     
     //BUILDERS
@@ -34,7 +34,6 @@ public final class S3Client extends SecureAntidoteClient{
     }
 
     public S3Client(List<TransformerFactory> transformerFactories, List<Host> hosts) {
-        //super(new DecisionProcedure(), transformerFactories, hosts);
         List<TransformerFactory> factories = new ArrayList<>();
         factories.add(accessMonitor);
         factories.add(new StaticInteractiveTransformer());
@@ -92,6 +91,7 @@ public final class S3Client extends SecureAntidoteClient{
         throw new AccessControlException("Currently active user and domain required!");
     }
 
+    /*
     @Override
     public SecuredInteractiveTransaction startTransaction(ByteString user, Object userData) {
         throw new AccessControlException("Currently active domain required!");
@@ -100,13 +100,14 @@ public final class S3Client extends SecureAntidoteClient{
     @Override
     public SecuredInteractiveTransaction startTransaction(ByteString user) {
         throw new AccessControlException("Currently active domain required!");
-    }
+    }*/
 
     @Override
     public AntidoteStaticTransaction createStaticTransaction() {
         throw new AccessControlException("Currently active user and domain required!");
     }
 
+    /*
     @Override
     public SecuredStaticTransaction createStaticTransaction(ByteString user, Object userData) {
         throw new AccessControlException("Currently active domain required!");
@@ -115,13 +116,14 @@ public final class S3Client extends SecureAntidoteClient{
     @Override
     public SecuredStaticTransaction createStaticTransaction(ByteString user) {
         throw new AccessControlException("Currently active domain required!");
-    }
+    }*/
 
     @Override
     public NoTransaction noTransaction() {
         throw new AccessControlException("Currently active user required!");
     }
 
+    /*
     @Override
     public SecuredNoTransaction noTransaction(ByteString user, Object userData) {
         throw new AccessControlException("Currently active user and domain required!");
@@ -130,7 +132,7 @@ public final class S3Client extends SecureAntidoteClient{
     @Override
     public SecuredNoTransaction noTransaction(ByteString user) {
         throw new AccessControlException("Currently active user and domain required!");
-    }
+    }*/
     
     
 }
