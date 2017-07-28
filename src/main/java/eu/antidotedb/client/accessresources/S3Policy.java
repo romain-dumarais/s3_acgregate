@@ -5,6 +5,7 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import eu.antidotedb.client.decision.S3Request;
 import java.util.List;
 
 /**
@@ -76,11 +77,11 @@ public abstract class S3Policy {
     
     public abstract void decode(String stringPolicy);
     
-    public boolean explicitAllow(ByteString subject, String action, ByteString targetBucket, ByteString targetKey, Object userData){
+    public boolean explicitAllow(S3Request request){
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public boolean explicitDeny(ByteString subject, String action, ByteString targetBucket, ByteString targetKey, Object userData){
+    public boolean explicitDeny(S3Request request){
         throw new UnsupportedOperationException("not implemented yet");
     }
     

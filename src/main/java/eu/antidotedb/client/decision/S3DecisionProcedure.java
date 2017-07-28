@@ -40,19 +40,20 @@ public class S3DecisionProcedure {
     //--------- Bucket ACL ----------
     
     public boolean decideBucketACLRead(ByteString currentUser, ByteString targetBucket, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        if(userPolicy.explicitDeny("READBUCKETACL", targetBucket)){
+        S3Request request = new S3Request(currentUser, "READBUCKETACL", targetBucket, null, null);
+        if(userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny("READBUCKETACL", currentUser)){
+        if(bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"readACL")){
             return false;
         }
-        if(userPolicy.explicitAllow("READBUCKETACL", targetBucket)){
+        if(userPolicy.explicitAllow(request)){
             return true;
         }
-        if(bucketPolicy.explicitAllow("READBUCKETACL", currentUser)){
+        if(bucketPolicy.explicitAllow(request)){
             return true;
         }
         if(S3ACL.explicitAllow(bucketACL,"readACL")){
