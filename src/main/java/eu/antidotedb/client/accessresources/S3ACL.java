@@ -29,16 +29,6 @@ public abstract class S3ACL{
         }
     }
     
-    /**
-     * builder for Access Monitor
-     * @param user 
-     * @param policyValues 
-     */
-    public S3ACL(ByteString user, Collection<? extends ByteString> policyValues){
-        this.permissions = new HashMap();
-        this.permissions.put(user, policyValues.stream().collect(Collectors.toSet()));
-    }
-    
     public String getRight(String userid){
         return decodeRight(this.permissions.get(ByteString.copyFromUtf8(userid)));
     }
@@ -120,12 +110,12 @@ public abstract class S3ACL{
         return result;
     }
     
-    public static boolean explicitAllow(/*all the needed args*/){
+    public static boolean explicitAllow(Collection<ByteString> acl,String operation){
         //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public static boolean explicitDeny(/*all the needed args*/){
+    public static boolean explicitDeny(Collection<ByteString> acl,String operation){
         //TODO : Romain
         throw new UnsupportedOperationException("not implemented yet");
     }

@@ -22,15 +22,6 @@ public class S3BucketACL extends S3ACL{
     }
     
     /**
-     * builder for Access Monitor
-     * @param user
-     * @param policyValues 
-     */
-    public S3BucketACL(ByteString user, Collection<? extends ByteString> policyValues){
-        super(user, policyValues);
-    }
-    
-    /**
      * reads the rights for a user in the database and update it locally. Other
      * users rights not updated
      * @param tx

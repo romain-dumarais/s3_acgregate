@@ -141,7 +141,7 @@ public class S3AccessMonitor extends AccessMonitor{
                 throw new AntidoteException("Could not perform S3 ACL update (error code: " + operationResp.getErrorcode() + ")");
             }
         }else{
-            throw new AccessControlException("Permission assignment not allowed");
+            throw new AccessControlException("ACL assignment not allowed");
         }
     }
     
@@ -179,7 +179,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param user ID of the user for which the ACL is read 
      * @return 
      */
-    private Collection<? extends ByteString> readACLUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey){
+    private Collection<ByteString> readACLUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -197,7 +197,7 @@ public class S3AccessMonitor extends AccessMonitor{
     
     
     void assignPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key, ByteString policyValue){
-        if(!isAssignPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
+        if(!isOpPolicyAllowed(downstream, connection, descriptor, true, isUserPolicy, key)){
             throw new AccessControlException("Policy assign not allowed");
         }else{
             ByteString policyBucket, policyKey;
@@ -250,7 +250,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @return readPolicy
      */
     S3Policy readPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key){
-        if(!isreadPolicyAllowed(downstream, connection, descriptor, isUserPolicy, key)){
+        if(!isOpPolicyAllowed(downstream, connection, descriptor, false, isUserPolicy, key)){
             throw new AccessControlException("Policy read not allowed");
         }else{
             if(isUserPolicy){
@@ -286,6 +286,9 @@ public class S3AccessMonitor extends AccessMonitor{
                     S3Policy policy;
                     if(isUserPolicy){policy = new S3UserPolicy();
                     }else{policy = new S3BucketPolicy();}
+                    if(!S3Policy.isInitialized(stringPolicy)){ //TODO : Romain : initialization with domain name
+                        throw new AccessControlException("policy has not been initialized");
+                    }
                     policy.decode(stringPolicy.toStringUtf8());
                     policiesList.add(policy);
                 }
@@ -331,9 +334,11 @@ public class S3AccessMonitor extends AccessMonitor{
     }
     
     
-    //--------------- Calls to DecisionProcedure -----------------
+    //-----------------------------------------------------------
+    //              Calls to DecisionProcedure
+    //-----------------------------------------------------------
     //TODO : Romain : parse these calls inside the read/assign
-    
+    //TODO : Romain : use enum instead of boolean flags
     
 
     private boolean isOpACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isBucketACL, ByteString bucket, ByteString key) {
@@ -341,36 +346,76 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
         Object userData = currentUserData(connection);
-        S3BucketACL bucketACL = new S3BucketACL(currentUser,readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser)));
+        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
+        S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
         //TODO : Romain : remove casts
-        S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, keyLink.securityBucket(bucket), keyLink.bucketPolicy());
-        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(key));
+        if(domain.equals(currentUser)){return true;}//root credentials
+        try{
+            userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
+        }catch(AccessControlException e){
+            throw new AccessControlException("the user does not exist in the database");
+        }
+        try{
+        bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, keyLink.securityBucket(bucket), keyLink.bucketPolicy());
+        }catch(AccessControlException e){
+            throw new AccessControlException("the bucket does not exist or is not allowed");
+        }
         
         if(isBucketACL){
             if(isAssign){
-                return this.decisionprocedure.decideBucketACLAssign(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+                return this.decisionprocedure.decideBucketACLAssign(currentUser, bucket, bucketACL, bucketPolicy, userPolicy);
             }else{
-                return this.decisionprocedure.decideBucketACLRead(domain, currentUser, userData, bucketACL, bucketPolicy, userPolicy);
+                return this.decisionprocedure.decideBucketACLRead(currentUser, bucket, bucketACL, bucketPolicy, userPolicy);
             }
         }else{
-            S3ObjectACL objectACL = new S3ObjectACL(currentUser,readACLUnchecked(downstream, descriptor, bucket, key));
+            Collection<ByteString> objectACL = readACLUnchecked(downstream, descriptor, bucket, key);
             if(isAssign){
-                return this.decisionprocedure.decideObjectACLAssign(domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+                return this.decisionprocedure.decideObjectACLAssign(currentUser, bucket, key, objectACL, bucketACL, bucketPolicy, userPolicy);
             }else{
-                return this.decisionprocedure.decideObjectACLRead( domain, currentUser, userData, objectACL, bucketACL, bucketPolicy, userPolicy);
+                return this.decisionprocedure.decideObjectACLRead(currentUser, bucket, key, objectACL, bucketACL, bucketPolicy, userPolicy);
             }
         }
     }
 
-    private boolean isreadPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
+    private boolean isOpPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isUserPolicy, ByteString key) {
+        //get requested policies
+        ByteString domain=currentDomain(connection);
+        ByteString currentUser = currentUser(connection);
+        Object userData = currentUserData(connection);
+        //TODO : Romain : remove casts
+        S3BucketPolicy bucketPolicy;
+        S3UserPolicy userPolicy;
+        //start of the process
+        if(domain.equals(currentUser)){return true;}//root credentials
+        try{
+            userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
+        }catch(AccessControlException e){
+            throw new AccessControlException("the user does not exist in the database");
+        }
+        
+        if(isUserPolicy){
+            if(isAssign){
+                return this.decisionprocedure.decideUserPolicyAssign(key,userPolicy);
+            }else{
+                return this.decisionprocedure.decideUserPolicyRead(key, userPolicy);
+            }
+        }else{
+            try{
+                bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, keyLink.securityBucket(key), keyLink.bucketPolicy());
+            }catch(AccessControlException e){
+                throw new AccessControlException("current Bucket does not exist in the database or is not allowed");
+            }
+            if(isAssign){
+                return this.decisionprocedure.decideBucketPolicyAssign(currentUser, key, bucketPolicy, userPolicy);
+            }else{
+                return this.decisionprocedure.decideBucketPolicyRead(currentUser, key, bucketPolicy, userPolicy);
+            }
+        }
     }
 
-    private boolean isAssignPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean userPolicy, ByteString key) {
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain
-    }
-    
-    
+    //-----------------------------------------------------------
+    //              interception of database calls
+    //-----------------------------------------------------------
 
     @Override
     public Transformer newTransformer(Transformer downstream, Connection connection) {

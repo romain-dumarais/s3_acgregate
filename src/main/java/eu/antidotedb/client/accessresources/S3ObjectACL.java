@@ -22,14 +22,6 @@ public class S3ObjectACL extends S3ACL{
     public S3ObjectACL(HashMap<String, String> rights) {
         super(rights);
     }
-    /**
-     * builder for Access Monitor
-     * @param user
-     * @param policyValues 
-     */
-    public S3ObjectACL(ByteString user, Collection<? extends ByteString> policyValues){
-        super(user, policyValues);
-    }
     
     /**
      * reads the right for a user in the database. Other users rights are not updated.
