@@ -86,6 +86,8 @@ public class S3AccessMonitor extends AccessMonitor{
     }
     
     
+    
+    
     //-----------------------------------------------------------
     //              Access Resources Management
     //-----------------------------------------------------------
@@ -384,7 +386,18 @@ public class S3AccessMonitor extends AccessMonitor{
         }
     }
     
-    private boolean isOpACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isBucketACL, ByteString bucket, ByteString key) {
+    /**
+     * get the needed access resources and pass calls the access decision 
+     * @param downstream transformer for communication w/ protocol buffer
+     * @param connection
+     * @param descriptor transaction descriptor
+     * @param isAssign boolean flag {@code true} if the operation is READ, {@code false} if ASSIGN
+     * @param isBucketACL boolean flag {@code true} if the operation is on a bucketACL, {@code false} if on an objectACL
+     * @param bucket requested bucket
+     * @param key requested object
+     * @return {@code true} if the operation is allowed, {@code false} if denied
+     */
+    private boolean isOpACLAllowed(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
@@ -420,6 +433,18 @@ public class S3AccessMonitor extends AccessMonitor{
         }
     }
 
+    
+    /**
+     * get the needed access resources and pass calls the access decision 
+     * @param downstream transformer for communication w/ protocol buffer
+     * @param connection
+     * @param descriptor transaction descriptor
+     * @param isAssign boolean flag {@code true} if the operation is READ, {@code false} if ASSIGN
+     * @param isUserPolicy boolean flag {@code true} if the operation is on a user Policy, {@code false} if on an bucket Policy
+     * @param bucket requested bucket
+     * @param key requested bucket or user key
+     * @return {@code true} if the operation is allowed, {@code false} if denied
+     */
     private boolean isOpPolicyAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isUserPolicy, ByteString key) {
         //get requested policies
         ByteString domain=currentDomain(connection);
@@ -456,6 +481,9 @@ public class S3AccessMonitor extends AccessMonitor{
         }
     }
 
+    
+    
+    
     //-----------------------------------------------------------
     //              interception of database calls
     //-----------------------------------------------------------

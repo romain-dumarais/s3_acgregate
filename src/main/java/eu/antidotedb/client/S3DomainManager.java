@@ -45,10 +45,11 @@ public class S3DomainManager{
         S3AccessMonitor accessMonitor = new S3AccessMonitor();
         S3InteractiveTransaction tx;
         //TODO : Romain : test how "new Client()" works
+        throw new UnsupportedOperationException("non terminating calls");/*
         tx = new S3InteractiveTransaction(new S3Client(), accessMonitor);
         accessMonitor.setCurrentUser(tx.connection, domain);
         accessMonitor.setDomain(tx.connection, domain);
-        return tx;
+        return tx;*/
     }
     
     //get keylink mapping
