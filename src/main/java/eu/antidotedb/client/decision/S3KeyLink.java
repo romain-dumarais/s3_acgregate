@@ -3,14 +3,12 @@ package eu.antidotedb.client.decision;
 import com.google.protobuf.ByteString;
 
 /**
-• Computes the Security Bucket from a origin Bucket name
-• Computes the Data Bucket from a origin Bucket name
-• Computes the ACL key from the object key
-• Computes the user bucket key from the domain key
+ * link between metadata and data. 
+ * Throws exceptions if the targetBucket is a metadata bucket
  * @author romain-dumarais
- * TODO : everything
+ * TODO : use link in existing Antidote FS projects
  */
-public class S3KeyLink {
+public final class S3KeyLink {
     
     public ByteString domainFlag(ByteString bucketKey, ByteString objectKey){
         throw new UnsupportedOperationException("not implemented yet");

@@ -12,6 +12,7 @@ import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.messages.AntidoteRequest;
 import eu.antidotedb.client.messages.AntidoteResponse;
 import eu.antidotedb.client.transformer.Transformer;
+import eu.antidotedb.client.transformer.TransformerWithDownstream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -176,7 +177,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param user ID of the user for which the ACL is read 
      * @return 
      */
-    private Collection<ByteString> readACLUnchecked(SocketSender downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey){
+    private Collection<ByteString> readACLUnchecked(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, ByteString securityBucket, ByteString aclKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -274,7 +275,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param policyKey
      * @return concurrentPolicies collection of concurrent policies
      */
-    S3Policy readPolicyUnchecked(SocketSender downstream, ByteString descriptor, boolean isUserPolicy, ByteString securityBucket, ByteString policyKey){
+    S3Policy readPolicyUnchecked(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, boolean isUserPolicy, ByteString securityBucket, ByteString policyKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -339,18 +340,55 @@ public class S3AccessMonitor extends AccessMonitor{
     }
     
     
+    
     //-----------------------------------------------------------
     //              Calls to DecisionProcedure
     //-----------------------------------------------------------
-    //TODO : Romain : parse these calls inside the read/assign
     //TODO : Romain : use enum instead of boolean flags
     
-
+    /**
+     * get the needed access resources and pass calls the access decision 
+     * @param downstream transformer for access resources reading
+     * @param connection 
+     * @param descriptor transaction descriptor
+     * @param isUpdate boolean flag {@code true} if the result is "isUpdateObjectAllowed", {@code false} if the result is "isReadObjectAllowed"
+     * @param targetBucket key of the targeted Bucket
+     * @param targetObject key of the targeted Object
+     * @return isOpObjectAllowed
+     */
+    private boolean isOpObjectAllowed(AntidoteRequest.Handler<AntidoteResponse> downstream, Connection connection, ByteString descriptor, boolean isUpdate, ByteString targetBucket, ByteString targetObject) {
+        //get AccessResources
+        ByteString domain=currentDomain(connection);
+        ByteString currentUser = currentUser(connection);
+        Object userData = currentUserData(connection); //TODO : Romain : use userData
+        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(targetBucket), keyLink.bucketACL(targetBucket, currentUser));
+        Collection<ByteString> objectACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(targetBucket), keyLink.objectACL(targetObject, currentUser));
+        S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
+        //TODO : Romain : remove casts
+        if(domain.equals(currentUser)){return true;}//root credentials
+        try{
+            userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
+        }catch(AccessControlException e){
+            throw new AccessControlException("the user does not exist in the database");
+        }
+        try{
+        bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, keyLink.securityBucket(targetBucket), keyLink.bucketPolicy());
+        }catch(AccessControlException e){
+            throw new AccessControlException("the bucket does not exist or is not allowed");
+        }
+        //call decision Procedure
+        if(isUpdate){
+            return this.decisionprocedure.decideObjectWrite(domain, currentUser, userData, targetBucket, targetObject, objectACL, bucketACL, bucketPolicy, userPolicy);
+        }else{
+            return this.decisionprocedure.decideObjectRead(domain, currentUser, userData, targetBucket, targetObject, objectACL, bucketACL, bucketPolicy, userPolicy);
+        }
+    }
+    
     private boolean isOpACLAllowed(SocketSender downstream, Connection connection, ByteString descriptor, boolean isAssign, boolean isBucketACL, ByteString bucket, ByteString key) {
         //get requested policies
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
-        Object userData = currentUserData(connection);
+        Object userData = currentUserData(connection); //TODO : Romain : use userData
         Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
         S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
         //TODO : Romain : remove casts
@@ -373,7 +411,7 @@ public class S3AccessMonitor extends AccessMonitor{
                 return this.decisionprocedure.decideBucketACLRead(currentUser, bucket, bucketACL, bucketPolicy, userPolicy);
             }
         }else{
-            Collection<ByteString> objectACL = readACLUnchecked(downstream, descriptor, bucket, key);
+            Collection<ByteString> objectACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.objectACL(key, currentUser));
             if(isAssign){
                 return this.decisionprocedure.decideObjectACLAssign(currentUser, bucket, key, objectACL, bucketACL, bucketPolicy, userPolicy);
             }else{
@@ -386,7 +424,7 @@ public class S3AccessMonitor extends AccessMonitor{
         //get requested policies
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
-        Object userData = currentUserData(connection);
+        Object userData = currentUserData(connection);//TODO : Romain : use userData
         //TODO : Romain : remove casts
         S3BucketPolicy bucketPolicy;
         S3UserPolicy userPolicy;
@@ -422,8 +460,60 @@ public class S3AccessMonitor extends AccessMonitor{
     //              interception of database calls
     //-----------------------------------------------------------
 
+    /**
+     * transformer to intercept the access request in the protocol buffer and 
+     * overwrites them with decision procedure
+     * @param downstream
+     * @param connection
+     * @return 
+     */
     @Override
     public Transformer newTransformer(Transformer downstream, Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //TODO : Romain : intercept database calls
+        //TODO : Romain : intercept database calls
+        return new TransformerWithDownstream(downstream) {
+            
+            /**
+             * overwrites the read request sent in the database and throws an exception
+             * if the access is denied
+             * @param apbReadObjects read request
+             * @return 
+             */
+            @Override
+            public AntidoteResponse handle(AntidotePB.ApbReadObjects apbReadObjects) {
+                AntidotePB.ApbReadObjects.Builder reqBuilder = apbReadObjects.toBuilder().clearBoundobjects();
+                ByteString transactionDescriptor = apbReadObjects.getTransactionDescriptor();
+                for (AntidotePB.ApbBoundObject boundObject : apbReadObjects.getBoundobjectsList()) {
+                    ByteString origBucket = boundObject.getBucket();
+                    if(!isOpObjectAllowed(getDownstream(), connection, transactionDescriptor, false, origBucket, boundObject.getKey())){
+                        throw new AccessControlException("User not allowed to read object");
+                    }
+                    
+                    reqBuilder.addBoundobjects(boundObject.toBuilder().setBucket(keyLink.dataBucket(origBucket)));
+                }
+                return getDownstream().handle(reqBuilder.build());
+            }
+            
+            /**
+             * overwrites the write request sent in the database and throws an exception
+             * if the access is denied
+             * @param apbUpdateObjects write request
+             * @return updateObjectResponse
+             */
+            @Override
+            public AntidoteResponse handle(AntidotePB.ApbUpdateObjects apbUpdateObjects) {
+                AntidotePB.ApbUpdateObjects.Builder reqBuilder = apbUpdateObjects.toBuilder().clearUpdates();
+                ByteString transactionDescriptor = apbUpdateObjects.getTransactionDescriptor();
+                for (AntidotePB.ApbUpdateOp updateOp : apbUpdateObjects.getUpdatesList()) {
+                    ByteString origBucket = updateOp.getBoundobject().getBucket();
+                    if(!isOpObjectAllowed(getDownstream(), connection, transactionDescriptor, true, origBucket, updateOp.getBoundobject().getKey())){
+                        throw new AccessControlException("User not allowed to write object");
+                    }
+                    reqBuilder.addUpdates(updateOp.toBuilder().setBoundobject(updateOp.getBoundobject().toBuilder().setBucket(keyLink.dataBucket(origBucket))));
+                }
+                return getDownstream().handle(reqBuilder.build());
+            }
+
+            
+        };
     }
 }
