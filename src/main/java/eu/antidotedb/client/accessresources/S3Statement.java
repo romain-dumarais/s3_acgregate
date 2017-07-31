@@ -78,7 +78,7 @@ public class S3Statement {
     }
 
     /**
-     * helper to encode Statement as a JSON object
+     * encode Statement as a JSON object
      * @return jsonStatement
      */
     public JsonObject encode(){
@@ -146,22 +146,23 @@ public class S3Statement {
     
     @Override
     public boolean equals(Object o){
-        boolean isEqual;
-        S3Statement remotestatement = (S3Statement) o;
-        isEqual = this.effect==remotestatement.getEffect()  
-                && this.resourcebucket.equals(remotestatement.getResourceBucket()) && this.actions.equals(remotestatement.getActions())
-                && this.principals.equals(remotestatement.getPrincipals()) && this.resourcesList.equals(remotestatement.getResources());
+        if(!o.getClass().equals(this.getClass())){return false;}
+        else{boolean isEqual;
+        S3Statement remoteStatement = (S3Statement) o;
+        isEqual = this.effect==remoteStatement.getEffect()  
+                && this.resourcebucket.equals(remoteStatement.getResourceBucket()) && this.actions.equals(remoteStatement.getActions())
+                && this.principals.equals(remoteStatement.getPrincipals()) && this.resourcesList.equals(remoteStatement.getResources());
         if(this.conditionBlock==null){
-            isEqual = isEqual && (remotestatement.getConditionBlock()==null);
+            isEqual = isEqual && (remoteStatement.getConditionBlock()==null);
         }else{
-            isEqual = isEqual && this.conditionBlock.equals(remotestatement.getConditionBlock());
+            isEqual = isEqual && this.conditionBlock.equals(remoteStatement.getConditionBlock());
         }/*
         if(this.resourcesList.isEmpty()){
             isEqual = isEqual && ostatement.getResources().isEmpty();
         }else{
             isEqual = isEqual && this.resourcesList.equals(ostatement.getResources());
         }*/
-        return isEqual;
+        return isEqual;}
     }
 
     @Override

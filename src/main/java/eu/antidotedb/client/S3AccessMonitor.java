@@ -192,7 +192,15 @@ public class S3AccessMonitor extends AccessMonitor{
     
     //--------------- Policies -----------------
     
-    
+    /**
+     * handle and performs the write request for a Policy in the database
+     * @param downstream
+     * @param connection
+     * @param descriptor
+     * @param isUserPolicy
+     * @param key
+     * @param policyValue 
+     */
     void assignPolicy(SocketSender downstream, Connection connection, ByteString descriptor, boolean isUserPolicy, ByteString key, ByteString policyValue){
         if(!isOpPolicyAllowed(downstream, connection, descriptor, true, isUserPolicy, key)){
             throw new AccessControlException("Policy assign not allowed");
@@ -238,7 +246,7 @@ public class S3AccessMonitor extends AccessMonitor{
     }
     
     /**
-     * reads in a database a policy 
+     * handle the read request for a Policy in the database
      * @param downstream handled by the transaction call
      * @param connection handled by the transaction call
      * @param descriptor handled by the transaction call
