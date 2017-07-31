@@ -9,6 +9,7 @@ import eu.antidotedb.antidotepb.AntidotePB;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A class to implement statement structure in the S3 Access Control Procedure
@@ -145,23 +146,34 @@ public class S3Statement {
     
     @Override
     public boolean equals(Object o){
-        if(!o.getClass().equals(this.getClass())){return false;}
-        else{boolean isEqual;
-        S3Statement ostatement = (S3Statement) o;
-        isEqual = this.effect==ostatement.getEffect()  
-                && this.resourcebucket.equals(ostatement.getResourceBucket()) && this.actions.equals(ostatement.getActions())
-                && this.principals.equals(ostatement.getPrincipals()) && this.resourcesList.equals(ostatement.getResources());
+        boolean isEqual;
+        S3Statement remotestatement = (S3Statement) o;
+        isEqual = this.effect==remotestatement.getEffect()  
+                && this.resourcebucket.equals(remotestatement.getResourceBucket()) && this.actions.equals(remotestatement.getActions())
+                && this.principals.equals(remotestatement.getPrincipals()) && this.resourcesList.equals(remotestatement.getResources());
         if(this.conditionBlock==null){
-            isEqual = isEqual && (ostatement.getConditionBlock()==null);
+            isEqual = isEqual && (remotestatement.getConditionBlock()==null);
         }else{
-            isEqual = isEqual && this.conditionBlock.equals(ostatement.getConditionBlock());
+            isEqual = isEqual && this.conditionBlock.equals(remotestatement.getConditionBlock());
         }/*
         if(this.resourcesList.isEmpty()){
             isEqual = isEqual && ostatement.getResources().isEmpty();
         }else{
             isEqual = isEqual && this.resourcesList.equals(ostatement.getResources());
         }*/
-        return isEqual;}
+        return isEqual;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 29 * hash + (this.effect ? 1 : 0);
+        hash = 29 * hash + Objects.hashCode(this.principals);
+        hash = 29 * hash + Objects.hashCode(this.actions);
+        hash = 29 * hash + Objects.hashCode(this.resourcesList);
+        hash = 29 * hash + Objects.hashCode(this.resourcebucket);
+        hash = 29 * hash + Objects.hashCode(this.conditionBlock);
+        return hash;
     }
     
     //getters

@@ -61,6 +61,11 @@ public abstract class S3Policy {
      */
     public abstract void assignPolicy(S3InteractiveTransaction tx, ByteString key);
     
+    
+    //--------------------------------
+    //      communication
+    //--------------------------------
+    
     public ByteString encode(){
         JsonArray jsongroups = Json.array(), jsonstatements = Json.array();
         this.groups.stream().forEach((group) -> {
@@ -77,15 +82,39 @@ public abstract class S3Policy {
     
     public abstract void decode(String stringPolicy);
     
+    //--------------------------------
+    //        Decision process
+    //--------------------------------
+    
     public boolean explicitAllow(S3Request request){
-        throw new UnsupportedOperationException("not implemented yet");
+        for(S3Statement statement:statements){
+            if(statement.getEffect()){
+                if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject) 
+                        && statement.getResourceBucket().equals(request.targetBucket) && statement.getResources().contains(request.targetKey)){
+                    return true;
+                    //TODO : Romain : add condition Block
+                }
+            }
+        }
+        return false;
     }
     
     public boolean explicitDeny(S3Request request){
-        throw new UnsupportedOperationException("not implemented yet");
+        for(S3Statement statement:statements){
+            if(!statement.getEffect()){
+                if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject) 
+                        && statement.getResourceBucket().equals(request.targetBucket) && statement.getResources().contains(request.targetKey)){
+                    return true;
+                    //TODO : Romain : add condition Block
+                }
+            }
+        }
+        return false;
     }
     
-    
+    //--------------------------------
+    //          Helpers
+    //--------------------------------
     
     //helpers for tests
     public List<S3Statement> getStatements(){
@@ -104,5 +133,12 @@ public abstract class S3Policy {
     }
     public boolean containsStatement(S3Statement statement) {
         return this.statements.contains(statement);
+    }
+    
+    
+    
+    public static boolean isInitialized(ByteString stringPolicy) {
+        //TODO : Romain : read-only flag for domain partition
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 }
