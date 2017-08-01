@@ -15,31 +15,38 @@ public final class S3KeyLink {
     }
     
     public ByteString securityBucket(ByteString bucketKey){
-        throw new UnsupportedOperationException("not implemented yet");
+        if(bucketKey.toStringUtf8().startsWith("_")){
+            throw new AccessControlException("not a valid bucket name");
+        }
+        return ByteString.copyFromUtf8("_ACL_").concat(bucketKey);
     }
     
     public ByteString dataBucket(ByteString bucketKey){
-        throw new UnsupportedOperationException("not implemented yet");
+        if(bucketKey.toStringUtf8().startsWith("_")){
+            throw new AccessControlException("not a valid bucket name");
+        }
+        return ByteString.copyFromUtf8("_data_").concat(bucketKey);
     }
     
     public ByteString userBucket(ByteString domain){
-        throw new UnsupportedOperationException("not implemented yet");
+        return ByteString.copyFromUtf8("_user_").concat(domain);
     }
     
     public ByteString objectACL(ByteString objectKey, ByteString user){
-        throw new UnsupportedOperationException("not implemented yet");
+        return objectKey.concat(ByteString.copyFromUtf8("_")).concat(user);
     }
     
-    public ByteString bucketACL(ByteString bucketKey, ByteString user){
-        throw new UnsupportedOperationException("not implemented yet");
+    public ByteString bucketACL(ByteString user){
+        System.out.println("bucket acl for user : "+user.toStringUtf8());
+        return ByteString.copyFromUtf8("_bucket_acl_").concat(user);
     }
     
     public ByteString bucketPolicy(){
-        throw new UnsupportedOperationException("not implemented yet");
+        return ByteString.copyFromUtf8("_bucket_policy");
     }
     
     public ByteString userPolicy(ByteString user){
-        throw new UnsupportedOperationException("not implemented yet");
+        return user.concat(ByteString.copyFromUtf8("_policy"));
     }
     
 }

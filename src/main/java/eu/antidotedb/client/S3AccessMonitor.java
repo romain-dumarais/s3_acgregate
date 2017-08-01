@@ -111,7 +111,7 @@ public class S3AccessMonitor extends AccessMonitor{
             ByteString securityBucket, aclKey;
             if(isBucketACL){
                 securityBucket = keyLink.securityBucket(bucket);
-                aclKey = keyLink.bucketACL(bucket, user);
+                aclKey = keyLink.bucketACL(user);
             }
             else{
                 if(key==null){throw new UnsupportedOperationException("ACL key can not be null");}
@@ -161,7 +161,7 @@ public class S3AccessMonitor extends AccessMonitor{
             throw new AccessControlException("ACL read is not allowed");
         }else{
             if(isBucketACL){
-                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, user));
+                return readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(user));
             }
             else{
                 if(key==null){throw new UnsupportedOperationException("ACL key can not be null");}
@@ -363,11 +363,11 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
         Object userData = currentUserData(connection); //TODO : Romain : use userData
-        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(targetBucket), keyLink.bucketACL(targetBucket, currentUser));
+        if(domain.equals(currentUser)){return true;}//root credentials
+        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(targetBucket), keyLink.bucketACL(currentUser));
         Collection<ByteString> objectACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(targetBucket), keyLink.objectACL(targetObject, currentUser));
         S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
         //TODO : Romain : remove casts
-        if(domain.equals(currentUser)){return true;}//root credentials
         try{
             userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
         }catch(AccessControlException e){
@@ -402,10 +402,10 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
         Object userData = currentUserData(connection); //TODO : Romain : use userData
-        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(bucket, currentUser));
+        if(domain.equals(currentUser)){return true;}//root credentials
+        Collection<ByteString> bucketACL = readACLUnchecked(downstream, descriptor, keyLink.securityBucket(bucket), keyLink.bucketACL(currentUser));
         S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
         //TODO : Romain : remove casts
-        if(domain.equals(currentUser)){return true;}//root credentials
         try{
             userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
         }catch(AccessControlException e){
@@ -450,11 +450,11 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString domain=currentDomain(connection);
         ByteString currentUser = currentUser(connection);
         Object userData = currentUserData(connection);//TODO : Romain : use userData
+        if(domain.equals(currentUser)){return true;}//root credentials
         //TODO : Romain : remove casts
         S3BucketPolicy bucketPolicy;
         S3UserPolicy userPolicy;
         //start of the process
-        if(domain.equals(currentUser)){return true;}//root credentials
         try{
             userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, keyLink.userBucket(domain), keyLink.userPolicy(currentUser));
         }catch(AccessControlException e){
@@ -497,7 +497,6 @@ public class S3AccessMonitor extends AccessMonitor{
      */
     @Override
     public Transformer newTransformer(Transformer downstream, Connection connection) {
-        //TODO : Romain : intercept database calls
         return new TransformerWithDownstream(downstream) {
             
             /**

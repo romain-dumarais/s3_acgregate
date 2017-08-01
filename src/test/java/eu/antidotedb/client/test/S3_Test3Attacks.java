@@ -5,9 +5,9 @@ import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CrdtMVRegister;
 import eu.antidotedb.client.Host;
 import eu.antidotedb.client.MVRegisterRef;
+import eu.antidotedb.client.S3Client.S3DomainManager;
 import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3Policy;
@@ -138,7 +138,7 @@ public class S3_Test3Attacks extends S3Test{
     public void scenario_12(){
         try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            S3InteractiveTransaction tx1 = domainManager.startTransaction();
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
             for(int i=0; i<5;i++){
                 ByteString user = ByteString.copyFromUtf8("user"+i);
                 domainManager.createUser(user, tx1);
@@ -167,8 +167,8 @@ public class S3_Test3Attacks extends S3Test{
         S3ObjectACL objACL1 = new S3ObjectACL();
         S3ObjectACL objACL2 = new S3ObjectACL();
         try{
-            S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            S3InteractiveTransaction tx2 = domainManager.startTransaction();
+            //S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(domain,domain);
             buckPol.readPolicy(tx2, bucket1.getName());
             buckACL.readForUser(tx2, bucket1.getName(), user2);
             userPol.readPolicy(tx2, ByteString.copyFromUtf8("user3"));

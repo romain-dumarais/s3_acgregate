@@ -7,9 +7,9 @@ import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.CrdtRegister;
 import eu.antidotedb.client.CrdtSet;
 import eu.antidotedb.client.RegisterRef;
+import eu.antidotedb.client.S3Client.S3DomainManager;
 import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3Policy;
@@ -89,7 +89,7 @@ public class S3_Test2Policies extends S3Test{
         //root creates user2, allows admin to write policies
         try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            S3InteractiveTransaction tx3 = domainManager.startTransaction();
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(domain,domain);
             domainManager.createUser(user2, tx3);
             List<S3Statement> statements = new ArrayList<>();
             statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList("assignPolicy","assignACL"),bucket1.getName(), Arrays.asList("*"), ""));
@@ -344,7 +344,7 @@ public class S3_Test2Policies extends S3Test{
         }
         try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            S3InteractiveTransaction tx2 = domainManager.startTransaction();
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(domain,domain);
             domainManager.createBucket(bucket2.getName(), tx2);
             object3.add("field 1 test 6");
             object3.push(tx2);
@@ -523,10 +523,11 @@ public class S3_Test2Policies extends S3Test{
      */
     @Test
     public void scenario_9(){
+        ByteString newdomain = ByteString.copyFromUtf8("newdomain");
         //try to transfer ownership of bucket2 to another domain : newdomain
         try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-            S3InteractiveTransaction tx1 = domainManager.startTransaction();
+            S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
             Bucket<String> securityBucket = Bucket.create(domainManager.getsecurityBucket(bucket1.getName()).toStringUtf8());
             RegisterRef<String> domainFlagRef = securityBucket.register("domain", ValueCoder.utf8String); // grow-only Map
             CrdtRegister<String> domainFlag = domainFlagRef.toMutable();
@@ -540,8 +541,9 @@ public class S3_Test2Policies extends S3Test{
             System.err.println(e);
         }
         try{
-            S3DomainManager newdomainManager = antidoteClient.loginAsRoot(ByteString.copyFromUtf8("newdomain"));
-            S3InteractiveTransaction tx2 = newdomainManager.startTransaction();
+            
+            S3DomainManager newdomainManager = antidoteClient.loginAsRoot(newdomain);
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(newdomain,newdomain);
             newdomainManager.createUser(admin, tx2);
             newdomainManager.createUser(ByteString.copyFromUtf8("user3"), tx2);            
             tx2.commitTransaction();
@@ -564,7 +566,7 @@ public class S3_Test2Policies extends S3Test{
         }
         //admin from newdomain tries to get object1
         try{
-            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, ByteString.copyFromUtf8("newdomain"));
+            S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, newdomain);
             object1.getValues();
             tx4.commitTransaction();
             System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
@@ -577,8 +579,8 @@ public class S3_Test2Policies extends S3Test{
         Set<String> obj1NewDomain = null, obj1Domain = null;
         //domain2 root try to access domain
         try{
-            S3DomainManager newdomainManager = antidoteClient.loginAsRoot(ByteString.copyFromUtf8("newdomain"));
-            S3InteractiveTransaction tx5 = newdomainManager.startTransaction();
+            //S3DomainManager newdomainManager = antidoteClient.loginAsRoot(newdomain);
+            S3InteractiveTransaction tx5 = antidoteClient.startTransaction(newdomain,newdomain);
             obj1NewDomain = object1.getValues();
             tx5.commitTransaction();
             System.err.println("9 : newdomain roots tries to access object1 : conditional success");
