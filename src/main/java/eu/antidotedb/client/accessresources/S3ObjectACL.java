@@ -31,7 +31,7 @@ public class S3ObjectACL extends S3ACL{
      * @param userid
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        Collection<? extends ByteString> policyValues = tx.readACLHelper(false, bucket, userid, key);
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(false, bucket, key, userid);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }

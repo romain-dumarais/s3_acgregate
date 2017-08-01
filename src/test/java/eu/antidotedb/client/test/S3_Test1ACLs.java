@@ -6,9 +6,7 @@ import eu.antidotedb.client.CounterRef;
 import eu.antidotedb.client.CrdtCounter;
 import eu.antidotedb.client.IntegerRef;
 import eu.antidotedb.client.InteractiveTransaction;
-import eu.antidotedb.client.S3Client;
 import eu.antidotedb.client.S3Client.S3DomainManager;
-import eu.antidotedb.client.SecuredInteractiveTransaction;
 import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
 import eu.antidotedb.client.decision.AccessControlException;
@@ -210,7 +208,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //test admin ACLs
         try{
-            SecuredInteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx2); //write object1
             int testInteger = object2.counter("testInteger").getValue();
@@ -225,7 +223,7 @@ public class S3_Test1ACLs extends S3Test {
         //test user1 ACLs
         try{
 
-            SecuredInteractiveTransaction tx3 = antidoteClient.startTransaction(admin, domain);
+            S3InteractiveTransaction tx3 = antidoteClient.startTransaction(admin, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx3); //write object1
             int testInteger = object2.counter("testInteger").getValue();
@@ -275,7 +273,7 @@ public class S3_Test1ACLs extends S3Test {
         
         //admin can not write in object2
         try{
-            SecuredInteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);         
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);         
             object2.counter("testInteger").increment(1); //add field 2 : Integer
             object2.push(tx2);
             tx2.commitTransaction();

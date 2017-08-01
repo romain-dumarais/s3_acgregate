@@ -37,7 +37,7 @@ public class S3Test {
      * init fot other tests
      */
     public S3Test(){
-        this.debugLog = true;
+        this.debugLog = false;
         List<TransformerFactory> transformers = new ArrayList<>();
         transformers.add(messageCounter = new CountingTransformer());
         if (debugLog) {

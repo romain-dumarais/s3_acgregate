@@ -17,7 +17,7 @@ import java.util.List;
  * @author romain-dumarais from a model from mweber_ukl
  */
 public class S3Client extends AntidoteClient{
-    private final S3AccessMonitor accessMonitor = new S3AccessMonitor();
+    private final S3AccessMonitor accessMonitor;
     
     //----------------------------------------
     //          BUILDERS
@@ -37,8 +37,9 @@ public class S3Client extends AntidoteClient{
     }
 
     public S3Client(List<TransformerFactory> transformerFactories, List<Host> hosts) {
+        this.accessMonitor = new S3AccessMonitor();
         List<TransformerFactory> factories = new ArrayList<>();
-        factories.add(accessMonitor);
+        factories.add(this.accessMonitor);
         factories.add(new StaticInteractiveTransformer());
         factories.addAll(transformerFactories);
         super.init(factories, hosts);
@@ -53,10 +54,10 @@ public class S3Client extends AntidoteClient{
     //INTERACTIVE
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
         //if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
-        S3InteractiveTransaction tx = new S3InteractiveTransaction(this, accessMonitor);
-        accessMonitor.setCurrentUser(tx.connection, user);
-        accessMonitor.setDomain(tx.connection, domain);
-        if (userData != null) {accessMonitor.setUserData(tx.connection, userData);}
+        S3InteractiveTransaction tx = new S3InteractiveTransaction(this, this.accessMonitor);
+        this.accessMonitor.setCurrentUser(tx.connection, user);
+        this.accessMonitor.setDomain(tx.connection, domain);
+        if (userData != null) {this.accessMonitor.setUserData(tx.connection, userData);}
         return tx;
     }
     
@@ -161,22 +162,22 @@ public class S3Client extends AntidoteClient{
             this.domain=domain;
         }
         
-        public void createBucket(ByteString bucketKey, SecuredInteractiveTransaction tx){
+        public void createBucket(ByteString bucketKey, S3InteractiveTransaction tx){
             //TODO : Romain : initialize flag
             //throw new UnsupportedOperationException("not implemented yet");
         }
 
-        public void deleteBucket(ByteString bucketKey, SecuredInteractiveTransaction tx){
+        public void deleteBucket(ByteString bucketKey, S3InteractiveTransaction tx){
             //TODO : Romain : delete flag
             throw new UnsupportedOperationException("not implemented yet");
         }
 
-        public void createUser(ByteString userKey, SecuredInteractiveTransaction tx){
+        public void createUser(ByteString userKey, S3InteractiveTransaction tx){
             //TODO : Romain : initialize flag
             //throw new UnsupportedOperationException("not implemented yet");
         }
 
-        public void deleteUser(ByteString userKey, SecuredInteractiveTransaction tx){
+        public void deleteUser(ByteString userKey, S3InteractiveTransaction tx){
             //TODO : Romain : delete flag
             throw new UnsupportedOperationException("not implemented yet");
         }

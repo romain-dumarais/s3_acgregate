@@ -37,7 +37,6 @@ public final class S3KeyLink {
     }
     
     public ByteString bucketACL(ByteString user){
-        System.out.println("bucket acl for user : "+user.toStringUtf8());
         return ByteString.copyFromUtf8("_bucket_acl_").concat(user);
     }
     
