@@ -1,6 +1,7 @@
 package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.accessresources.S3Policy;
 
 /**
  * link between metadata and data. 
@@ -9,6 +10,7 @@ import com.google.protobuf.ByteString;
  * TODO : use link in existing Antidote FS projects
  */
 public final class S3KeyLink {
+    
     
     public ByteString domainFlag(ByteString bucketKey, ByteString objectKey){
         throw new UnsupportedOperationException("not implemented yet");
@@ -46,6 +48,10 @@ public final class S3KeyLink {
     
     public ByteString userPolicy(ByteString user){
         return user.concat(ByteString.copyFromUtf8("_policy"));
+    }
+    
+    public static boolean isInitialized(S3Policy policy, ByteString domain) {
+        return policy.getGroups().contains(domain);
     }
     
 }

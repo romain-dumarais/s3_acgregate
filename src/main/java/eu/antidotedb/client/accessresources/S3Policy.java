@@ -135,10 +135,4 @@ public abstract class S3Policy {
         return this.statements.contains(statement);
     }
     
-    
-    
-    public static boolean isInitialized(ByteString stringPolicy) {
-        //TODO : Romain : read-only flag for domain partition
-        throw new UnsupportedOperationException("Not supported yet."); 
-    }
 }

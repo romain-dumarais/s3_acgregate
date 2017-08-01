@@ -1,6 +1,8 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.accessresources.S3BucketPolicy;
+import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
 import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.transformer.StaticInteractiveTransformer;
@@ -164,7 +166,9 @@ public class S3Client extends AntidoteClient{
         
         public void createBucket(ByteString bucketKey, S3InteractiveTransaction tx){
             //TODO : Romain : initialize flag
-            //throw new UnsupportedOperationException("not implemented yet");
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy();
+            bucketPolicy.addGroup(domain);
+            bucketPolicy.assignPolicy(tx, bucketKey);
         }
 
         public void deleteBucket(ByteString bucketKey, S3InteractiveTransaction tx){
@@ -174,7 +178,9 @@ public class S3Client extends AntidoteClient{
 
         public void createUser(ByteString userKey, S3InteractiveTransaction tx){
             //TODO : Romain : initialize flag
-            //throw new UnsupportedOperationException("not implemented yet");
+            S3UserPolicy userPolicy = new S3UserPolicy();
+            userPolicy.addGroup(domain);
+            userPolicy.assignPolicy(tx, userKey);
         }
 
         public void deleteUser(ByteString userKey, S3InteractiveTransaction tx){

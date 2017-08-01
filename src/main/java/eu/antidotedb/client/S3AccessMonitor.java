@@ -294,12 +294,12 @@ public class S3AccessMonitor extends AccessMonitor{
                     S3Policy policy;
                     if(isUserPolicy){policy = new S3UserPolicy();
                     }else{policy = new S3BucketPolicy();}
-                    if(!S3Policy.isInitialized(stringPolicy)){ //TODO : Romain : initialization with domain name
-                        throw new AccessControlException("policy has not been initialized");
-                    }
                     policy.decode(stringPolicy.toStringUtf8());
                     policiesList.add(policy);
                 }
+        if(policiesList.isEmpty()){
+            throw new AccessControlException("this policy has not been initialized");
+        }
         return policyMergerHelper(policiesList, isUserPolicy);
     }
     
