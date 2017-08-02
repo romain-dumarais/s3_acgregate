@@ -4,6 +4,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.accessresources.S3Operation;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Arrays;
@@ -15,7 +16,7 @@ import org.junit.Test;
  * @author romain-dumarais
  */
 public class JsonTest {
-    private final S3Statement statement = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
+    private final S3Statement statement = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
     
     @Test
     public void decodeStatement(){
@@ -42,7 +43,7 @@ public class JsonTest {
     
     @Test
     public void round1(){
-        String stringStatement0 = "{\"Effect\":true,\"Principals\":[\"user1\"],\"Actions\":[\"*\"],\"Resources\":{\"bucket\":\"testBucketS3\",\"objects\":[\"object1TestS3\",\"object2TestS3\"]}}";
+        String stringStatement0 = "{\"Effect\":true,\"Principals\":[\"user1\"],\"Actions\":[\"READOBJECT\"],\"Resources\":{\"bucket\":\"testBucketS3\",\"objects\":[\"object1TestS3\",\"object2TestS3\"]}}";
         //System.out.println("stringstatement0 : "+stringStatement0);
         JsonObject objectStatement = Json.parse(stringStatement0).asObject();
         S3Statement statement1 =S3Statement.decodeStatic(objectStatement);
@@ -70,10 +71,10 @@ public class JsonTest {
     
     @Test
     public void policyRound(){
-        S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
-        S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "");
-        S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList("getValues", "set"), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
-        S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList("*"), ByteString.copyFromUtf8("testBucket2"), "another condition block");
+        S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
+        S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "");
+        S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
+        S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), "another condition block");
         S3UserPolicy policy1 = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("user_group1")), Arrays.asList(statement1, statement2, statement3, statement4));
         String stringPolicy = policy1.encode().toStringUtf8();
         //System.out.println(stringPolicy);

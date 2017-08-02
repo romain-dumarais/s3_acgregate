@@ -360,11 +360,10 @@ public class S3_Test1ACLs extends S3Test {
 
         S3ObjectACL object1ACL, object2ACL;
         object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); 
+        
         //verify ACL state
-        printResources();
         try{
-            System.out.println("4 : verify ACL state : start : user1 > read ACLs");
-            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
+            S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
             
             object1ACL.readForUser(tx2, bucket1.getName(), object1.getRef().getKey(), admin);
             object1ACL.readForUser(tx2, bucket1.getName(), object1.getRef().getKey(), user1);
@@ -452,32 +451,6 @@ public class S3_Test1ACLs extends S3Test {
     
     
     
-    public void printResources(){
-        try{
-        S3InteractiveTransaction tx0 = antidoteClient.startTransaction(domain, domain);
-         S3ObjectACL object1ACL, object2ACL; 
-            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy;
-            object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); bucketACL= new S3BucketACL();
-            bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();
-            
-            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), admin);
-            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), user1);
-            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), admin);
-            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), user1);
-            bucketACL.readForUser(tx0, bucket1.getName(), admin);
-            bucketACL.readForUser(tx0, bucket1.getName(), user1);
-            bucketPolicy.readPolicy(tx0, bucket1.getName());
-            adminPolicy.readPolicy(tx0, admin);
-            tx0.commitTransaction();
-            System.out.println("user1 / object 1 : "+object1ACL.getRight("user1"));
-            System.out.println("admin / object 1 : "+object1ACL.getRight("admin"));
-            System.out.println("user1 / object 2 : "+object2ACL.getRight("user1"));
-            System.out.println("admin / object 2 : "+object2ACL.getRight("admin"));
-            System.out.println("user1 / bucket ACL : "+bucketACL.getRight("user1"));
-            System.out.println("admin / bucket ACL : "+bucketACL.getRight("admin"));
-            System.out.println("bucketPolicy: "+bucketPolicy.getStatements().toString());
-            System.out.println("admin : "+adminPolicy.getStatements().toString());
-        }catch(Exception e){}
-    }
+    
     
 }

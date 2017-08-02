@@ -2,6 +2,7 @@ package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3Policy;
+import java.util.List;
 
 /**
  * link between metadata and data. 
@@ -53,5 +54,6 @@ public final class S3KeyLink {
     public static boolean isInitialized(S3Policy policy, ByteString domain) {
         return policy.getGroups().contains(domain);
     }
+
     
 }

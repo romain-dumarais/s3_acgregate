@@ -10,6 +10,7 @@ import eu.antidotedb.client.accessresources.S3BucketACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
+import eu.antidotedb.client.accessresources.S3Operation;
 import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
@@ -43,7 +44,7 @@ public class S3_Test3Attacks extends S3Test{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
             S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
-            S3Statement user1Statement = new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), bucket1.getName(), "");
+            S3Statement user1Statement = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), "");
             S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(user1Statement));
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             user1Policy.assignPolicy(tx1, user1);
@@ -143,7 +144,7 @@ public class S3_Test3Attacks extends S3Test{
                 ByteString user = ByteString.copyFromUtf8("user"+i);
                 domainManager.createUser(user, tx1);
                 ArrayList<S3Statement> statements = new ArrayList<>();
-                statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList("*"), bucket1.getName(), ""));
+                statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), ""));
                 S3Policy userPolicy = new S3UserPolicy(new ArrayList<>(), statements);
                 userPolicy.assignPolicy(tx1, user);
             }
@@ -178,8 +179,8 @@ public class S3_Test3Attacks extends S3Test{
         }catch(Exception e){
             System.err.println("12: read resources : fail");
         }
-        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"),bucket1.getName(), Arrays.asList("object2TestS3"), ""));
-        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList("*"), bucket1.getName(),Arrays.asList("object2TestS3"), ""));
+        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT),bucket1.getName(), Arrays.asList("object2TestS3"), ""));
+        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(),Arrays.asList("object2TestS3"), ""));
         try{
             assertEquals(buckPol,buckPolVerif);
             assertEquals(buckACL.getRight("user2"), "none");

@@ -147,23 +147,30 @@ public class S3DecisionProcedure {
     public boolean decideBucketACLAssign(ByteString currentUser, ByteString targetBucket, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, "WRITEBUCKETACL", targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
+            System.out.println("user Policy deny");
             return false;
         }
         if(bucketPolicy.explicitDeny(request)){
+            System.out.println("bucket Policy deny");
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"writeACL")){
+            System.out.println("bucket ACL deny");
             return false;
         }
         if(userPolicy.explicitAllow(request)){
+            System.out.println("user Policy allow");
             return true;
         }
         if(bucketPolicy.explicitAllow(request)){
+            System.out.println("bucket Policy allow");
             return true;
         }
         if(S3ACL.explicitAllow(bucketACL,"writeACL")){
+            System.out.println("bucket ACL allow");
             return true;
         }
+        System.out.println("default deny");
         return false;
     }
     
@@ -202,12 +209,6 @@ public class S3DecisionProcedure {
     
     public boolean decideObjectACLAssign(ByteString currentUser, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, "WRITEOBJECTACL", targetBucket, targetObject, null);
-        
-        ArrayList<String> objectACLString = new ArrayList<>();
-        for(ByteString right : objectACL){objectACLString.add(right.toStringUtf8());}
-        System.out.println("object ACL write : objectACL : "+objectACLString);
-        System.out.println("object ACL write : bucketACL : "+bucketACL.toString());
-        System.out.println("object ACL write : targetObject : "+targetObject.toStringUtf8()+" | target Bucket : "+targetBucket.toStringUtf8());
         if(userPolicy.explicitDeny(request)){
             return false;
         }

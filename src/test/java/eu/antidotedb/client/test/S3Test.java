@@ -74,9 +74,9 @@ public class S3Test {
         test1.scenario_1();
         test1.scenario_2();
         test1.scenario_3();
-        test1.scenario_4();/*
+        test1.scenario_4();
         test2.scenario_5init();
-        test2.scenario_5();
+        test2.scenario_5();/*
         test2.scenario_5bis();
         test2.scenario_5ter();
         test2.scenario_6();

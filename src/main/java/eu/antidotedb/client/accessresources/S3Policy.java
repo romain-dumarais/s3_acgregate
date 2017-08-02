@@ -14,6 +14,8 @@ import java.util.List;
  * checks for Explicit Allow (user, op, userData)*
  * checks for Explicit deny
  * resolves concurrent updates and interprets the conditionBlocks
+ * TODO : statement : user as ByteString, operations as ENUM type
+ * TODO : statement for user policy management : needs a non-null bucket
  * @author romain-dumarais
  */
 public abstract class S3Policy {
@@ -89,11 +91,24 @@ public abstract class S3Policy {
     public boolean explicitAllow(S3Request request){
         for(S3Statement statement:statements){
             if(statement.getEffect()){
-                if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject) 
-                        && statement.getResourceBucket().equals(request.targetBucket) && statement.getResources().contains(request.targetKey)){
-                    return true;
-                    //TODO : Romain : add condition Block
+                if(request.action.equals("READBUCKETACL") || request.action.equals("WRITEBUCKETACL") || request.action.equals("READBUCKETPOLICY") || request.action.equals("ASSIGNBUCKETPOLICY")){
+                    //targetBucket key stored in resource bucket and in targetKey in request
+                    System.out.println("allow bucket op ?");
+                    System.out.println("actions : "+request.action+" in "+statement.getActions());
+                    System.out.println("user :"+request.subject.toStringUtf8()+" in "+statement.getPrincipals());
+                    System.out.println("bucket :"+request.targetBucket.toStringUtf8()+" in "+statement.getResourceBucket().toStringUtf8());
+                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && statement.getResourceBucket().equals(request.targetKey);
                 }
+                if(request.action.equals("READUSERPOLICY") || request.action.equals("ASSIGNUSERPOLICY")){
+                    //user ID stored in targetKey in request, in Resources in statement
+                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
+                }else{
+                    return statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
+                        && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
+                }
+                    //TODO : Romain : add condition Block
             }
         }
         return false;
@@ -102,11 +117,20 @@ public abstract class S3Policy {
     public boolean explicitDeny(S3Request request){
         for(S3Statement statement:statements){
             if(!statement.getEffect()){
-                if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject) 
-                        && statement.getResourceBucket().equals(request.targetBucket) && statement.getResources().contains(request.targetKey)){
-                    return true;
-                    //TODO : Romain : add condition Block
+                if(request.action.equals("READBUCKETACL") || request.action.equals("WRITEBUCKETACL") || request.action.equals("READBUCKETPOLICY") || request.action.equals("ASSIGNBUCKETPOLICY")){
+                    //targetBucket key stored in resource bucket and in targetKey in request
+                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && statement.getResourceBucket().equals(request.targetKey);
                 }
+                if(request.action.equals("READUSERPOLICY") || request.action.equals("ASSIGNUSERPOLICY")){
+                    //user ID stored in targetKey in request, in Resources in statement
+                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
+                }else{
+                    return statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
+                        && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
+                }
+                //TODO : Romain : add condition block
             }
         }
         return false;

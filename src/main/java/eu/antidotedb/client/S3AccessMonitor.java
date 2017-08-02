@@ -2,6 +2,7 @@ package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
+import eu.antidotedb.client.S3Client.S3DomainManager;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
@@ -107,7 +108,7 @@ public class S3AccessMonitor extends AccessMonitor{
      */
     void assignACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL,ByteString bucket, ByteString targetObject, ByteString targetUser, Collection<ByteString> permissions){
         if(!isOpACLAllowed(downstream, connection, descriptor, true, isBucketACL, bucket, targetObject)){ 
-            throw new AccessControlException("ACL assignment not allowed");
+            throw new AccessControlException("ACL assignment not allowed for user : "+currentUser(connection).toStringUtf8());
         }else{
             //assignment
             ByteString securityBucket, aclKey;
@@ -298,9 +299,6 @@ public class S3AccessMonitor extends AccessMonitor{
                     policy.decode(stringPolicy.toStringUtf8());
                     policiesList.add(policy);
                 }
-        if(policiesList.isEmpty()){
-            throw new AccessControlException("this policy has not been initialized");
-        }
         return policyMergerHelper(policiesList, isUserPolicy);
     }
     
@@ -314,7 +312,7 @@ public class S3AccessMonitor extends AccessMonitor{
         //TODO : Romain : make this private after tests
         switch(policies.size()){
             case(0):
-                throw new UnsupportedOperationException("empty list");
+                return new S3BucketPolicy();//arbitrary choice
             case(1):
                 return policies.get(0);
             default:

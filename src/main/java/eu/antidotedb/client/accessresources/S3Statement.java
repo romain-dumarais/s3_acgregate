@@ -19,7 +19,7 @@ import java.util.Objects;
 public class S3Statement {
     private final boolean effect;
     private final List<String> principals;
-    private final List<String> actions; //TODO : Romain : use an ENUM type
+    private final List<S3Operation> actions; //TODO : Romain : use an ENUM type
     private final List<String> resourcesList;
     private final ByteString resourcebucket;
     private final String conditionBlock;
@@ -33,7 +33,7 @@ public class S3Statement {
      * @param resources list of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<String> actions, ByteString resourceBucket, List<String> resources, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString resourceBucket, List<String> resources, String conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -50,7 +50,7 @@ public class S3Statement {
      * @param bucketKey name of the bucket for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<String> actions, ByteString bucketKey, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString bucketKey, String conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -67,7 +67,7 @@ public class S3Statement {
      * @param resourcetype type of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<String> actions, AntidotePB.CRDT_type resourcetype, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, AntidotePB.CRDT_type resourcetype, String conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -86,7 +86,7 @@ public class S3Statement {
         principals.stream().forEach((princip) -> {principalsJson.add(princip);});
         
         JsonArray actionsJson = Json.array();
-        actions.stream().forEach((action) -> {actionsJson.add(action);});
+        actions.stream().forEach((action) -> {actionsJson.add(action.toString());});
         
         JsonArray resourcesObjectsJson = Json.array();
         if(resourcesList!=null){resourcesList.stream().forEach((resource) -> {resourcesObjectsJson.add(resource);});}
@@ -115,7 +115,7 @@ public class S3Statement {
         JsonObject value = statementJson;
         boolean effect;
         List<String> principals = new ArrayList<>();
-        List<String> actions = new ArrayList<>();
+        List<S3Operation> actions = new ArrayList<>();
         List<String> resourcesList = new ArrayList<>();
         ByteString resourcebucket;
         String conditionBlock;
@@ -127,13 +127,14 @@ public class S3Statement {
         JsonArray resourcesListJson=new JsonArray();
         try{resourcesListJson = resourcesJson.get("objects").asArray();
         }catch(NullPointerException e){}
+        
         resourcebucket = ByteString.copyFromUtf8(resourcesJson.get("bucket").asString());
         //TODO : Romain : add resourceType
         try{conditionBlock = value.get("ConditionBlock").asString();
         }catch(NullPointerException e){conditionBlock="";}
         //parse Json Arrays to list
         for (JsonValue princip : principalsJson) {principals.add(princip.asString());}
-        for(JsonValue action : actionsJson) {actions.add(action.asString());}
+        for(JsonValue action : actionsJson) {actions.add(S3Operation.valueOf(action.asString()));}
         if(!resourcesListJson.isEmpty()){
         for(JsonValue resource : resourcesListJson) {resourcesList.add(resource.asString());}
         }
@@ -184,7 +185,7 @@ public class S3Statement {
     public List<String> getPrincipals(){
         return this.principals;
     }
-    public List<String> getActions(){
+    public List<S3Operation> getActions(){
         return this.actions;
     }
     public List<String> getResources(){
