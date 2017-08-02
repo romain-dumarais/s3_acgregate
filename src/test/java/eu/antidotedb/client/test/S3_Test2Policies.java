@@ -380,7 +380,7 @@ public class S3_Test2Policies extends S3Test{
         //user2 fails to read object3
         try{
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(user1, domain);
-            object3.getValues();
+            object3.getRef().read(tx5);
             tx5.commitTransaction();
             System.err.println("6 : user1 fails to read object3 : fail");
         }catch(AccessControlException e){
@@ -438,7 +438,7 @@ public class S3_Test2Policies extends S3Test{
         //user1 fails to read object1
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-            object1.getValues();
+            object1.getRef().read(tx2);
             tx2.commitTransaction();
             System.err.println("7 : user1 fails to read object1 : fail");
         }catch(AccessControlException e){
@@ -450,7 +450,7 @@ public class S3_Test2Policies extends S3Test{
         //user2 fails to read object1
         try{
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user2, domain);
-            object1.getValues();
+            object1.getRef().read(tx3);
             tx3.commitTransaction();
             System.err.println("7 : user2 fails to read object1 : fail");
         }catch(AccessControlException e){
@@ -495,7 +495,7 @@ public class S3_Test2Policies extends S3Test{
          //user1 fails to read object1
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-            object1.getValues();
+            object1.getRef().read(tx2);
             tx2.commitTransaction();
             System.err.println("8 : user1 fails to read object1 : fail");
         }catch(AccessControlException e){
@@ -507,7 +507,7 @@ public class S3_Test2Policies extends S3Test{
         //user2 fails to read object1
         try{
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user2, domain);
-            object1.getValues();
+            object1.getRef().read(tx3);
             tx3.commitTransaction();
             System.err.println("8 : user2 fails to read object1 : fail");
         }catch(AccessControlException e){
@@ -555,7 +555,7 @@ public class S3_Test2Policies extends S3Test{
         //user3 in domain2 try to access domain
         try{
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(ByteString.copyFromUtf8("user3"), domain);
-            object1.getValues();
+            object1.getRef().read(tx3);
             tx3.commitTransaction();
             System.err.println("9 : user3 (newdomain) fails to read in domain : fail");
         }catch(AccessControlException e){
@@ -567,7 +567,7 @@ public class S3_Test2Policies extends S3Test{
         //admin from newdomain tries to get object1
         try{
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, newdomain);
-            object1.getValues();
+            object1.getRef().read(tx4);
             tx4.commitTransaction();
             System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
         }catch(AccessControlException e){
@@ -576,12 +576,12 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
             System.err.println(e);
         }
-        Set<String> obj1NewDomain = null, obj1Domain = null;
+        List<String> obj1NewDomain = null, obj1Domain = null;
         //domain2 root try to access domain
         try{
             //S3DomainManager newdomainManager = antidoteClient.loginAsRoot(newdomain);
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(newdomain,newdomain);
-            obj1NewDomain = object1.getValues();
+            obj1NewDomain = object1.getRef().read(tx5);
             tx5.commitTransaction();
             System.err.println("9 : newdomain roots tries to access object1 : conditional success");
         }catch(Exception e){
@@ -590,7 +590,7 @@ public class S3_Test2Policies extends S3Test{
         }
         try{
             S3InteractiveTransaction tx6 = antidoteClient.startTransaction(admin, domain);
-            obj1Domain = object1.getValues();
+            obj1Domain = object1.getRef().read(tx6);
             tx6.commitTransaction();
         }catch(Exception e){
             System.err.println("9 : verifying transaction 5 : fail");
@@ -660,7 +660,7 @@ public class S3_Test2Policies extends S3Test{
         if(localTestHour>=8 && localTestHour<17){
             try{
                 S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-                object1.getValues();
+                object1.getRef().read(tx2);
                 tx2.commitTransaction();
                 System.out.println("10 : access from time restriction : success");
             }catch(Exception e){
@@ -670,7 +670,7 @@ public class S3_Test2Policies extends S3Test{
         }else{
             try{
                 S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
-                object1.getValues();
+                object1.getRef().read(tx2);
                 tx2.commitTransaction();
                 System.out.println("10 : access outside time restriction : fail");
             }catch(AccessControlException e){
@@ -684,7 +684,7 @@ public class S3_Test2Policies extends S3Test{
         if(localTestIP !=null && localTestIP.equals(testIP)){
             try{
                 S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user2, domain);
-                object1.getValues();
+                object1.getRef().read(tx2);
                 tx2.commitTransaction();
                 System.out.println("10 : access from IP restriction : success");
             }catch(Exception e){
@@ -694,7 +694,7 @@ public class S3_Test2Policies extends S3Test{
         }else{
             try{
                 S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user2, domain);
-                object1.getValues();
+                object1.getRef().read(tx2);
                 tx2.commitTransaction();
                 System.out.println("10 : access outside IP restriction : fail");
             }catch(AccessControlException e){

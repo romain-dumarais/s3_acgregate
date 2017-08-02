@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3ACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -40,7 +41,6 @@ public class S3DecisionProcedure {
      */
     public boolean decideObjectRead(ByteString domain, ByteString currentUser, Object userData, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, "READOBJECT", targetBucket, targetObject, userData);
-        System.out.println("-- read : user : "+currentUser.toStringUtf8()+" | currentObject : "+targetObject.toStringUtf8());
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -86,7 +86,6 @@ public class S3DecisionProcedure {
      */
     public boolean decideObjectWrite(ByteString domain, ByteString currentUser, Object userData, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, "WRITEOBJECT", targetBucket, targetObject, null);
-        System.out.println("-- write : user : "+currentUser.toStringUtf8()+" | currentObject : "+targetObject.toStringUtf8());
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -203,8 +202,10 @@ public class S3DecisionProcedure {
     
     public boolean decideObjectACLAssign(ByteString currentUser, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, "WRITEOBJECTACL", targetBucket, targetObject, null);
-        System.out.println("**** request : "+currentUser.toStringUtf8());
-        System.out.println("object ACL write : objectACL : "+objectACL.toString());
+        
+        ArrayList<String> objectACLString = new ArrayList<>();
+        for(ByteString right : objectACL){objectACLString.add(right.toStringUtf8());}
+        System.out.println("object ACL write : objectACL : "+objectACLString);
         System.out.println("object ACL write : bucketACL : "+bucketACL.toString());
         System.out.println("object ACL write : targetObject : "+targetObject.toStringUtf8()+" | target Bucket : "+targetBucket.toStringUtf8());
         if(userPolicy.explicitDeny(request)){

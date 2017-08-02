@@ -34,12 +34,12 @@ public final class S3KeyLink {
         return ByteString.copyFromUtf8("_user_").concat(domain);
     }
     
-    public ByteString objectACL(ByteString objectKey, ByteString user){
-        return objectKey.concat(ByteString.copyFromUtf8("_")).concat(user);
+    public ByteString objectACL(ByteString objectKey, ByteString currentUser){
+        return objectKey.concat(ByteString.copyFromUtf8("_")).concat(currentUser);
     }
     
-    public ByteString bucketACL(ByteString user){
-        return ByteString.copyFromUtf8("_bucket_acl_").concat(user);
+    public ByteString bucketACL(ByteString currentUser){
+        return ByteString.copyFromUtf8("_bucket_acl_").concat(currentUser);
     }
     
     public ByteString bucketPolicy(){

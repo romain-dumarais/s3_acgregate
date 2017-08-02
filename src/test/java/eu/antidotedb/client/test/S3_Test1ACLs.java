@@ -18,6 +18,7 @@ import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -58,7 +59,7 @@ public class S3_Test1ACLs extends S3Test {
         try{
             InteractiveTransaction tx = antidoteClient.startTransaction();
             counter.pull(tx);
-            int oldValue = counter.getValue();
+            int oldValue = counter.getRef().read(tx);
             assertEquals(0, oldValue);
             counter.increment(5);
             counter.push(tx);
@@ -183,10 +184,8 @@ public class S3_Test1ACLs extends S3Test {
 
         //write the ACLs
         try{
-            
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
-            
             
             HashMap<String, String> permissions1, permissions2;
             permissions1 = new HashMap<>();
@@ -212,7 +211,7 @@ public class S3_Test1ACLs extends S3Test {
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx2); //write object1
-            int testInteger = object2.counter("testInteger").getValue();
+            int testInteger = object2.getRef().read(tx2).counter("testInteger");
             object2.push(tx2); //read object2
             tx2.commitTransaction();
             System.out.println("2 : admin ACL : success");
@@ -227,7 +226,7 @@ public class S3_Test1ACLs extends S3Test {
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx3); //write object1
-            int testInteger = object2.counter("testInteger").getValue();
+            int testInteger = object2.getRef().read(tx3).counter("testInteger");
             object2.push(tx3); //read object2
             tx3.commitTransaction();
             System.err.println("2 : user1 ACL : fail");
@@ -248,54 +247,22 @@ public class S3_Test1ACLs extends S3Test {
      */
     @Test
     public void scenario_3(){
-        
-        S3InteractiveTransaction tx0 = antidoteClient.startTransaction(domain, domain);
-         S3ObjectACL object1ACL, object2ACL; 
-            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy;
-            object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); bucketACL= new S3BucketACL();
-            bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();
-            
-            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), admin);
-            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), user1);
-            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), admin);
-            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), user1);
-            bucketACL.readForUser(tx0, bucket1.getName(), admin);
-            bucketACL.readForUser(tx0, bucket1.getName(), user1);
-            bucketPolicy.readPolicy(tx0, bucket1.getName());
-            adminPolicy.readPolicy(tx0, admin);
-            tx0.commitTransaction();
-            System.out.println("user1 / object 1 : "+object1ACL.getRight("user1"));
-            System.out.println("admin / object 1 : "+object1ACL.getRight("admin"));
-            System.out.println("user1 / object 2 : "+object2ACL.getRight("user1"));
-            System.out.println("admin / object 2 : "+object2ACL.getRight("admin"));
-            System.out.println("user1 / bucket ACL : "+bucketACL.getRight("user1"));
-            System.out.println("admin / bucket ACL : "+bucketACL.getRight("admin"));
-            System.out.println("obucketPolicy: "+bucketPolicy.getStatements().toString());
-            System.out.println("admin : "+adminPolicy.getStatements().toString());
-            
- 
         //admin sets ACLs
-        //try{
+        try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
-            System.out.println("____admi write ACL");
-            HashMap<String, String> permissions1, permissions2;
-            permissions1 = new HashMap<>(); permissions2 = new HashMap<>();
             
-            permissions1.put("admin","writeACL");
-            permissions1.put("user1", "none");
-            new S3ObjectACL(permissions1).assign(tx1, bucket1.getName(), object1.getRef().getKey());
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object1.getRef().getKey(), user1, "none");
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object1.getRef().getKey(), admin, "writeACL");
             
-            
-            permissions2.put("admin","read");
-            permissions2.put("user1","writeACL");
-            new S3ObjectACL(permissions2).assign(tx1, bucket1.getName(), object2.getRef().getKey());
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object2.getRef().getKey(), user1, "writeACL");
+            S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object2.getRef().getKey(), admin, "read");
             
             tx1.commitTransaction();
             System.out.println("3 : admin writeACL : success");
-        /*}catch(Exception e){
+        }catch(Exception e){
             System.err.println("3 : admin writeACL : fail");
             System.err.println(e);
-        }*/
+        }
         
         //admin can not write in object2
         try{
@@ -307,16 +274,17 @@ public class S3_Test1ACLs extends S3Test {
             System.err.println("3 : admin unauthorized write : fail");
         }catch(AccessControlException e){
             System.out.println("3 : admin unauthorized write : success");
-        }/*catch(Exception e){
+        }catch(Exception e){
             System.err.println("3 : admin unauthorized write : fail");
             System.err.println(e);
-        }*/
+        }
         
         //user1 can not read object1
         try{
             System.out.println("____user1 ACL");
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
-            object1.getValues();
+            List<String> values = object1.getRef().read(tx3);
+            System.out.println(values);
             tx3.commitTransaction();
             System.err.println("3 : user1 ACL: fail");
         }catch(AccessControlException e){
@@ -328,16 +296,13 @@ public class S3_Test1ACLs extends S3Test {
         
     //user1 write object2 and object ACL of object 2
     try{
-        System.out.println("____user1 rwRW rights");
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(user1, domain);
             
             object2.register("testRegister",ValueCoder.utf8String).set("field1: updated in test 3 transaction 4");
             object2.push(tx4);
             
-            HashMap<String, String> permissions = new HashMap<>();
-            permissions.put("admin","writeACL");
-            permissions.put("user1", "read");
-            new S3ObjectACL(permissions).assign(tx4, bucket1.getName(), object1.getRef().getKey());
+            S3ObjectACL.assignForUserStatic(tx4, bucket1.getName(), object2.getRef().getKey(), admin, "writeACL");
+            S3ObjectACL.assignForUserStatic(tx4, bucket1.getName(), object2.getRef().getKey(), user1, "read");
             
             tx4.commitTransaction();
             System.out.println("3 : user1 used rwRW rights : success");
@@ -349,13 +314,11 @@ public class S3_Test1ACLs extends S3Test {
     //admin writes object 2
     try{
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
-
             object2.register("testRegister",ValueCoder.utf8String).set("field1: updated in test 3 transaction 5");
             object2.push(tx5);
-            
             tx5.commitTransaction();
             System.out.println("3 : verify ACL changes : success");
-        }catch(Exception e){
+    }catch(Exception e){
             System.err.println("3 : verify ACL changes : fail");
             System.err.println(e);
     }
@@ -398,13 +361,15 @@ public class S3_Test1ACLs extends S3Test {
         S3ObjectACL object1ACL, object2ACL;
         object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); 
         //verify ACL state
+        printResources();
         try{
+            System.out.println("4 : verify ACL state : start : user1 > read ACLs");
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);
             
-            object1ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), admin);
-            object1ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), user1);
-            object2ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), admin);
-            object2ACL.readForUser(tx2, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), user1);
+            object1ACL.readForUser(tx2, bucket1.getName(), object1.getRef().getKey(), admin);
+            object1ACL.readForUser(tx2, bucket1.getName(), object1.getRef().getKey(), user1);
+            object2ACL.readForUser(tx2, bucket1.getName(), object2.getRef().getKey(), admin);
+            object2ACL.readForUser(tx2, bucket1.getName(), object2.getRef().getKey(), user1);
             
             //verify ACL
             assert(object1ACL.getRight("admin").equals("writeACL"));
@@ -412,7 +377,7 @@ public class S3_Test1ACLs extends S3Test {
             assert(object2ACL.getRight("admin").equals("writeACL"));
             assert(object2ACL.getRight("user1").equals("read"));
             tx2.commitTransaction();
-            System.err.println("4 : verify ACL state : success");
+            System.out.println("4 : verify ACL state : success");
         }catch(Exception e){
             System.err.println("4 : verify ACL state : fail");
             System.err.println(e);
@@ -472,7 +437,7 @@ public class S3_Test1ACLs extends S3Test {
         
         try{
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(admin, domain);
-            Set<String> readresult = object1.getValues();
+            List<String> readresult = object1.getRef().read(tx5);
             tx5.commitTransaction();
             if(!readresult.contains("test 4 transaction 4 : unauthorized")){System.out.println("4 : authorized + unauthorized write : verified success");}
             else{System.err.println("4 : authorized + unauthorized write : fail");}
@@ -483,6 +448,36 @@ public class S3_Test1ACLs extends S3Test {
             System.err.println(e);
     }
         
+    }
+    
+    
+    
+    public void printResources(){
+        try{
+        S3InteractiveTransaction tx0 = antidoteClient.startTransaction(domain, domain);
+         S3ObjectACL object1ACL, object2ACL; 
+            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy;
+            object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); bucketACL= new S3BucketACL();
+            bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();
+            
+            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), admin);
+            object1ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), user1);
+            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), admin);
+            object2ACL.readForUser(tx0, bucket1.getName(), ByteString.copyFromUtf8("object2TestS3"), user1);
+            bucketACL.readForUser(tx0, bucket1.getName(), admin);
+            bucketACL.readForUser(tx0, bucket1.getName(), user1);
+            bucketPolicy.readPolicy(tx0, bucket1.getName());
+            adminPolicy.readPolicy(tx0, admin);
+            tx0.commitTransaction();
+            System.out.println("user1 / object 1 : "+object1ACL.getRight("user1"));
+            System.out.println("admin / object 1 : "+object1ACL.getRight("admin"));
+            System.out.println("user1 / object 2 : "+object2ACL.getRight("user1"));
+            System.out.println("admin / object 2 : "+object2ACL.getRight("admin"));
+            System.out.println("user1 / bucket ACL : "+bucketACL.getRight("user1"));
+            System.out.println("admin / bucket ACL : "+bucketACL.getRight("admin"));
+            System.out.println("bucketPolicy: "+bucketPolicy.getStatements().toString());
+            System.out.println("admin : "+adminPolicy.getStatements().toString());
+        }catch(Exception e){}
     }
     
 }

@@ -64,12 +64,12 @@ public class S3ObjectACL extends S3ACL{
       * This operation does not modify the rights of users that are not present in the local ACL object
       * @param tx transaction used for the assigh operation
       * @param bucket bucket of the target object
-      * @param key key of the target object
+      * @param targetObject key of the target object
       */
-    public void assign(S3InteractiveTransaction tx, ByteString bucket, ByteString key){
+    public void assign(S3InteractiveTransaction tx, ByteString bucket, ByteString targetObject){
         Set<ByteString> users = this.permissions.keySet();
-        for(ByteString user:users){
-            tx.assignACLHelper(false, bucket, key, user, this.permissions.get(user));
+        for(ByteString targetUser:users){
+            tx.assignACLHelper(false, bucket, targetObject, targetUser, this.permissions.get(targetUser));
             
         }
     }

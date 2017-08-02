@@ -105,8 +105,8 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param user ID of the user for which the ACL is assigned 
      * @param permissions 
      */
-    void assignACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL,ByteString bucket, ByteString key, ByteString targetUser, Collection<ByteString> permissions){
-        if(!isOpACLAllowed(downstream, connection, descriptor, true, isBucketACL, bucket, key)){ 
+    void assignACL(SocketSender downstream, Connection connection, ByteString descriptor, boolean isBucketACL,ByteString bucket, ByteString targetObject, ByteString targetUser, Collection<ByteString> permissions){
+        if(!isOpACLAllowed(downstream, connection, descriptor, true, isBucketACL, bucket, targetObject)){ 
             throw new AccessControlException("ACL assignment not allowed");
         }else{
             //assignment
@@ -116,9 +116,9 @@ public class S3AccessMonitor extends AccessMonitor{
                 aclKey = keyLink.bucketACL(targetUser);
             }
             else{
-                if(key==null){throw new UnsupportedOperationException("ACL key can not be null");}
+                if(targetObject==null){throw new UnsupportedOperationException("ACL key can not be null");}
                 securityBucket = keyLink.securityBucket(bucket);
-                aclKey = keyLink.objectACL(key, targetUser);
+                aclKey = keyLink.objectACL(targetObject, targetUser);
             }
             
             AntidotePB.ApbUpdateObjects aclUpdateOp = AntidotePB.ApbUpdateObjects.newBuilder()
@@ -538,6 +538,8 @@ public class S3AccessMonitor extends AccessMonitor{
                 }
                 return getDownstream().handle(reqBuilder.build());
             }
+            
+            //TODO : Romain : handle Static transactions
            
         };
     }
