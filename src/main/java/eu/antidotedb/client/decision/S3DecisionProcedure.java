@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3ACL;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
+import static eu.antidotedb.client.accessresources.S3Operation.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -40,7 +41,7 @@ public class S3DecisionProcedure {
      * @return isRequestAllowed
      */
     public boolean decideObjectRead(ByteString domain, ByteString currentUser, Object userData, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "READOBJECT", targetBucket, targetObject, userData);
+        S3Request request = new S3Request(currentUser, READOBJECT, targetBucket, targetObject, userData);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -85,7 +86,7 @@ public class S3DecisionProcedure {
      * @return isRequestAllowed
      */
     public boolean decideObjectWrite(ByteString domain, ByteString currentUser, Object userData, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "WRITEOBJECT", targetBucket, targetObject, null);
+        S3Request request = new S3Request(currentUser, WRITEOBJECT, targetBucket, targetObject, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -122,7 +123,7 @@ public class S3DecisionProcedure {
     //--------- Bucket ACL ----------
     
     public boolean decideBucketACLRead(ByteString currentUser, ByteString targetBucket, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "READBUCKETACL", targetBucket, null, null);
+        S3Request request = new S3Request(currentUser, READBUCKETACL, targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -145,7 +146,7 @@ public class S3DecisionProcedure {
     }
     
     public boolean decideBucketACLAssign(ByteString currentUser, ByteString targetBucket, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "WRITEBUCKETACL", targetBucket, null, null);
+        S3Request request = new S3Request(currentUser, WRITEBUCKETACL, targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
             System.out.println("user Policy deny");
             return false;
@@ -177,7 +178,7 @@ public class S3DecisionProcedure {
     //--------- Object ACL ----------
     
     public boolean decideObjectACLRead(ByteString currentUser, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "READOBJECTACL", targetBucket, targetObject, null);
+        S3Request request = new S3Request(currentUser, READOBJECTACL, targetBucket, targetObject, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -208,7 +209,7 @@ public class S3DecisionProcedure {
     }
     
     public boolean decideObjectACLAssign(ByteString currentUser, ByteString targetBucket, ByteString targetObject, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "WRITEOBJECTACL", targetBucket, targetObject, null);
+        S3Request request = new S3Request(currentUser, WRITEOBJECTACL, targetBucket, targetObject, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -246,7 +247,7 @@ public class S3DecisionProcedure {
     //--------- Bucket Policy ----------
     
     public boolean decideBucketPolicyRead(ByteString currentUser, ByteString targetBucket, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "READBUCKETPOLICY", targetBucket, null, null);
+        S3Request request = new S3Request(currentUser, READBUCKETPOLICY, targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -263,7 +264,7 @@ public class S3DecisionProcedure {
     }
     
     public boolean decideBucketPolicyAssign(ByteString currentUser, ByteString targetBucket, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, "ASSIGNBUCKETPOLICY", targetBucket, null, null);
+        S3Request request = new S3Request(currentUser, ASSIGNBUCKETPOLICY, targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
             return false;
         }
@@ -282,7 +283,7 @@ public class S3DecisionProcedure {
     //--------- User Policy ----------
     
     public boolean decideUserPolicyRead(ByteString targetUser,S3UserPolicy currentUserPolicy){
-        S3Request request = new S3Request(null, "READUSERPOLICY", null, targetUser, null);
+        S3Request request = new S3Request(null, READUSERPOLICY, null, targetUser, null);
         if(currentUserPolicy.explicitDeny(request)){
             return false;
         }
@@ -293,7 +294,7 @@ public class S3DecisionProcedure {
     }
     
     public boolean decideUserPolicyAssign(ByteString targetUser, S3UserPolicy currentUserPolicy){
-        S3Request request = new S3Request(null, "ASSIGNUSERPOLICY", null, targetUser, null);
+        S3Request request = new S3Request(null, ASSIGNUSERPOLICY, null, targetUser, null);
         if(currentUserPolicy.explicitDeny(request)){
             return false;
         }

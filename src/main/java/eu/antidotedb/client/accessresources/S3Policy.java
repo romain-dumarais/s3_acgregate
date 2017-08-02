@@ -5,6 +5,7 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import static eu.antidotedb.client.accessresources.S3Operation.*;
 import eu.antidotedb.client.decision.S3Request;
 import java.util.List;
 
@@ -91,7 +92,7 @@ public abstract class S3Policy {
     public boolean explicitAllow(S3Request request){
         for(S3Statement statement:statements){
             if(statement.getEffect()){
-                if(request.action.equals("READBUCKETACL") || request.action.equals("WRITEBUCKETACL") || request.action.equals("READBUCKETPOLICY") || request.action.equals("ASSIGNBUCKETPOLICY")){
+                if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
                     //targetBucket key stored in resource bucket and in targetKey in request
                     System.out.println("allow bucket op ?");
                     System.out.println("actions : "+request.action+" in "+statement.getActions());
@@ -100,7 +101,7 @@ public abstract class S3Policy {
                     return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && statement.getResourceBucket().equals(request.targetKey);
                 }
-                if(request.action.equals("READUSERPOLICY") || request.action.equals("ASSIGNUSERPOLICY")){
+                if(request.action.equals(READUSERPOLICY) || request.action.equals(ASSIGNUSERPOLICY)){
                     //user ID stored in targetKey in request, in Resources in statement
                     return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
@@ -117,12 +118,12 @@ public abstract class S3Policy {
     public boolean explicitDeny(S3Request request){
         for(S3Statement statement:statements){
             if(!statement.getEffect()){
-                if(request.action.equals("READBUCKETACL") || request.action.equals("WRITEBUCKETACL") || request.action.equals("READBUCKETPOLICY") || request.action.equals("ASSIGNBUCKETPOLICY")){
+                if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
                     //targetBucket key stored in resource bucket and in targetKey in request
                     return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && statement.getResourceBucket().equals(request.targetKey);
                 }
-                if(request.action.equals("READUSERPOLICY") || request.action.equals("ASSIGNUSERPOLICY")){
+                if(request.action.equals(READUSERPOLICY) || request.action.equals(ASSIGNUSERPOLICY)){
                     //user ID stored in targetKey in request, in Resources in statement
                     return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
