@@ -55,7 +55,7 @@ public class S3Statement {
         this.conditionBlock=conditionBlock;
         this.effect=effect;
         this.principals=principals;
-        this.resourcesList=new ArrayList<>();
+        this.resourcesList=Arrays.asList("*");
         this.resourcebucket=bucketKey;
     }
     

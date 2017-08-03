@@ -148,30 +148,23 @@ public class S3DecisionProcedure {
     public boolean decideBucketACLAssign(ByteString currentUser, ByteString targetBucket, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, WRITEBUCKETACL, targetBucket, null, null);
         if(userPolicy.explicitDeny(request)){
-            System.out.println("user Policy deny");
             return false;
         }
         if(bucketPolicy.explicitDeny(request)){
-            System.out.println("bucket Policy deny");
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"writeACL")){
-            System.out.println("bucket ACL deny");
             return false;
         }
         if(userPolicy.explicitAllow(request)){
-            System.out.println("user Policy allow");
             return true;
         }
         if(bucketPolicy.explicitAllow(request)){
-            System.out.println("bucket Policy allow");
             return true;
         }
         if(S3ACL.explicitAllow(bucketACL,"writeACL")){
-            System.out.println("bucket ACL allow");
             return true;
         }
-        System.out.println("default deny");
         return false;
     }
     

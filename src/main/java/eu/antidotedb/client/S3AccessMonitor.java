@@ -217,7 +217,6 @@ public class S3AccessMonitor extends AccessMonitor{
         if(!isOpPolicyAllowed(downstream, connection, descriptor, operation, key)){
             throw new AccessControlException("Policy assign not allowed");
         }else{
-            System.out.println(operation+" "+operation.equals(ASSIGNUSERPOLICY));
             ByteString policyBucket, policyKey;
             switch(operation){
                 case ASSIGNUSERPOLICY:

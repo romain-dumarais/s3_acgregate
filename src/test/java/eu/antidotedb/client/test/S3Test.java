@@ -76,15 +76,16 @@ public class S3Test {
         test1.scenario_3();
         test1.scenario_4();
         test2.scenario_5init();
-        test2.scenario_5();/*
-        test2.scenario_5bis();
-        test2.scenario_5ter();
+        test2.scenario_5();
+        //test2.scenario_5bis();//TODO : Romain : type of resource
+        //test2.scenario_5ter();//TODO : Romain : crdt specific operations
         test2.scenario_6();
         test2.scenario_7();
-        test2.scenario_8();
-        test2.scenario_9();
-        test2.scenario_10();
-        test3.scenario_11();*/
+        test2.scenario_8();/*
+        test2.scenario_9();//TODO : Romain : domain flags
+        test2.scenario_10();//TODO : Romain : appliation layer
+        test3.scenario_11();//TODO : attacks
+        */
     }
     
     public void resetAll(){

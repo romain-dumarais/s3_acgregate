@@ -266,7 +266,6 @@ public class S3_Test1ACLs extends S3Test {
         
         //admin can not write in object2
         try{
-            System.out.println("____admi unauthorized write");
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);         
             object2.counter("testInteger").increment(1); //add field 2 : Integer
             object2.push(tx2);
@@ -281,7 +280,6 @@ public class S3_Test1ACLs extends S3Test {
         
         //user1 can not read object1
         try{
-            System.out.println("____user1 ACL");
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
             List<String> values = object1.getRef().read(tx3);
             System.out.println(values);

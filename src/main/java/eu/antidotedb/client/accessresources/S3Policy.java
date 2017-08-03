@@ -16,7 +16,7 @@ import java.util.List;
  * checks for Explicit deny
  * resolves concurrent updates and interprets the conditionBlocks
  * TODO : statement : user as ByteString, operations as ENUM type
- * TODO : statement for user policy management : needs a non-null bucket
+ * TODO : statement for user policy management : currently needs a non-null bucket
  * @author romain-dumarais
  */
 public abstract class S3Policy {
@@ -90,51 +90,76 @@ public abstract class S3Policy {
     //--------------------------------
     
     public boolean explicitAllow(S3Request request){
+        boolean isExplicitAllow=false;
         for(S3Statement statement:statements){
             if(statement.getEffect()){
-                if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
+                switch(request.action){
+                //if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
                     //targetBucket key stored in resource bucket and in targetKey in request
-                    System.out.println("allow bucket op ?");
-                    System.out.println("actions : "+request.action+" in "+statement.getActions());
-                    System.out.println("user :"+request.subject.toStringUtf8()+" in "+statement.getPrincipals());
-                    System.out.println("bucket :"+request.targetBucket.toStringUtf8()+" in "+statement.getResourceBucket().toStringUtf8());
-                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
-                        && statement.getResourceBucket().equals(request.targetKey);
-                }
-                if(request.action.equals(READUSERPOLICY) || request.action.equals(ASSIGNUSERPOLICY)){
-                    //user ID stored in targetKey in request, in Resources in statement
-                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
-                        && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
-                }else{
-                    return statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
-                        && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
+                    case READBUCKETACL:
+                    case READBUCKETPOLICY:
+                    case ASSIGNBUCKETPOLICY:
+                    case WRITEBUCKETACL:
+                        if(statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && statement.getResourceBucket().equals(request.targetBucket)){
+                            isExplicitAllow=true;
+                        }
+                        break;
+                    //user ID stored in targetKey in request, in Resources in statement,does not need a current user check (only one policy to check)
+                    case READUSERPOLICY:
+                    case ASSIGNUSERPOLICY:
+                        if(statement.getActions().contains(request.action) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
+                            isExplicitAllow=true;
+                        }
+                        break;
+                    default:
+                        if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
+                            && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
+                            isExplicitAllow=true;
+                        }
+                        break;
                 }
                     //TODO : Romain : add condition Block
             }
         }
-        return false;
+        return isExplicitAllow;
     }
     
     public boolean explicitDeny(S3Request request){
+        boolean isExplicitDeny=false;
         for(S3Statement statement:statements){
             if(!statement.getEffect()){
-                if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
+                switch(request.action){
+                //if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
                     //targetBucket key stored in resource bucket and in targetKey in request
-                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
-                        && statement.getResourceBucket().equals(request.targetKey);
+                    case READBUCKETACL:
+                    case READBUCKETPOLICY:
+                    case ASSIGNBUCKETPOLICY:
+                    case WRITEBUCKETACL:
+                        if(statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
+                        && statement.getResourceBucket().equals(request.targetBucket)){
+                            isExplicitDeny=true;
+                        }
+                        break;
+                    //user ID stored in targetKey in request, in Resources in statement,does not need a current user check (only one policy to check)
+                    case READUSERPOLICY:
+                    case ASSIGNUSERPOLICY:
+                        if(statement.getActions().contains(request.action) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
+                            isExplicitDeny=true;
+                        }
+                        break;
+                    default:
+                        System.out.println(statement.getResources());
+                        if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
+                            && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
+                            isExplicitDeny=true;
+                        }
+                        break;
                 }
-                if(request.action.equals(READUSERPOLICY) || request.action.equals(ASSIGNUSERPOLICY)){
-                    //user ID stored in targetKey in request, in Resources in statement
-                    return statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
-                        && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
-                }else{
-                    return statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
-                        && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"));
-                }
-                //TODO : Romain : add condition block
+                    //TODO : Romain : add condition Block
             }
         }
-        return false;
+        return isExplicitDeny;
     }
     
     //--------------------------------
