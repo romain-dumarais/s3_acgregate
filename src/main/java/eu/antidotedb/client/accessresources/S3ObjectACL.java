@@ -2,6 +2,8 @@ package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import static eu.antidotedb.client.accessresources.S3Operation.READOBJECTACL;
+import static eu.antidotedb.client.accessresources.S3Operation.WRITEOBJECTACL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
@@ -31,7 +33,7 @@ public class S3ObjectACL extends S3ACL{
      * @param userid
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        Collection<? extends ByteString> policyValues = tx.readACLHelper(false, bucket, key, userid);
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(READOBJECTACL, bucket, key, userid);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }
@@ -45,7 +47,7 @@ public class S3ObjectACL extends S3ACL{
      * @param right
      */
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
-        tx.assignACLHelper(false, bucket, key, userid, encodeRight(right));
+        tx.assignACLHelper(WRITEOBJECTACL, bucket, key, userid, encodeRight(right));
     }
     
      /**
@@ -56,7 +58,7 @@ public class S3ObjectACL extends S3ACL{
      * @param userid
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        tx.assignACLHelper(false, bucket, key, userid, this.permissions.get(userid));
+        tx.assignACLHelper(WRITEOBJECTACL, bucket, key, userid, this.permissions.get(userid));
     }
     
      /**
@@ -69,7 +71,7 @@ public class S3ObjectACL extends S3ACL{
     public void assign(S3InteractiveTransaction tx, ByteString bucket, ByteString targetObject){
         Set<ByteString> users = this.permissions.keySet();
         for(ByteString targetUser:users){
-            tx.assignACLHelper(false, bucket, targetObject, targetUser, this.permissions.get(targetUser));
+            tx.assignACLHelper(WRITEOBJECTACL, bucket, targetObject, targetUser, this.permissions.get(targetUser));
             
         }
     }

@@ -6,6 +6,8 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import static eu.antidotedb.client.accessresources.S3Operation.ASSIGNUSERPOLICY;
+import static eu.antidotedb.client.accessresources.S3Operation.READUSERPOLICY;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +34,7 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
-        S3UserPolicy remotePolicy = (S3UserPolicy) tx.readPolicyHelper(true, userID);
+        S3UserPolicy remotePolicy = (S3UserPolicy) tx.readPolicyHelper(READUSERPOLICY, userID);
         super.statements.clear(); super.groups.clear();
         remotePolicy.getGroups().stream().forEach((group) -> {super.addGroup(group);});
         remotePolicy.getStatements().stream().forEach((statement) -> {super.addStatement(statement);});
@@ -45,7 +47,7 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
-        tx.assignPolicyHelper(true, userkey, this.encode());
+        tx.assignPolicyHelper(ASSIGNUSERPOLICY, userkey, this.encode());
     }
     
     @Override

@@ -2,6 +2,8 @@ package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import static eu.antidotedb.client.accessresources.S3Operation.WRITEBUCKETACL;
+import static eu.antidotedb.client.accessresources.S3Operation.READBUCKETACL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
@@ -29,7 +31,7 @@ public class S3BucketACL extends S3ACL{
      * @param userid
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        Collection<? extends ByteString> policyValues = tx.readACLHelper(true, bucket, null, userid);
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(READBUCKETACL, bucket, null, userid);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }
@@ -42,7 +44,7 @@ public class S3BucketACL extends S3ACL{
      * @param userid
      */
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
-        tx.assignACLHelper(true, bucket, null, userid, encodeRight(right));
+        tx.assignACLHelper(WRITEBUCKETACL, bucket, null, userid, encodeRight(right));
     }
     
     /**
@@ -52,7 +54,7 @@ public class S3BucketACL extends S3ACL{
      * @param userid
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString userid){
-        tx.assignACLHelper(true, bucket, null, userid, this.permissions.get(userid));
+        tx.assignACLHelper(WRITEBUCKETACL, bucket, null, userid, this.permissions.get(userid));
     }
     
     /**
@@ -64,7 +66,7 @@ public class S3BucketACL extends S3ACL{
     public void assign(S3InteractiveTransaction tx, ByteString bucket){
         Set<ByteString> users = this.permissions.keySet();
         users.stream().forEach((user) -> {
-            tx.assignACLHelper(true, bucket, null, user, this.permissions.get(user));
+            tx.assignACLHelper(WRITEBUCKETACL, bucket, null, user, this.permissions.get(user));
         });
     }
 }

@@ -6,10 +6,10 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
+import static eu.antidotedb.client.accessresources.S3Operation.ASSIGNBUCKETPOLICY;
+import static eu.antidotedb.client.accessresources.S3Operation.READBUCKETPOLICY;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * class for Bucket Policy Management, extends the S3Policy abstract class
@@ -33,7 +33,7 @@ public final class S3BucketPolicy extends S3Policy{
      */
     @Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString bucketID){
-        S3BucketPolicy remotePolicy = (S3BucketPolicy) tx.readPolicyHelper(false, bucketID);
+        S3BucketPolicy remotePolicy = (S3BucketPolicy) tx.readPolicyHelper(READBUCKETPOLICY, bucketID);
         super.statements.clear(); super.groups.clear();
         remotePolicy.getGroups().stream().forEach((group) -> {super.addGroup(group);});
         remotePolicy.getStatements().stream().forEach((statement) -> {super.addStatement(statement);});
@@ -46,7 +46,7 @@ public final class S3BucketPolicy extends S3Policy{
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString bucketID){
-        tx.assignPolicyHelper(false, bucketID, this.encode());
+        tx.assignPolicyHelper(ASSIGNBUCKETPOLICY, bucketID, this.encode());
     }
     
     @Override
