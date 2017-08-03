@@ -1,6 +1,8 @@
 package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.antidotepb.AntidotePB;
+import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.POLICY;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.READOBJECTACL;
 import static eu.antidotedb.client.accessresources.S3Operation.WRITEOBJECTACL;
@@ -33,7 +35,8 @@ public class S3ObjectACL extends S3ACL{
      * @param userid
      */
     public void readForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        Collection<? extends ByteString> policyValues = tx.readACLHelper(READOBJECTACL, bucket, key, userid);
+        AntidotePB.ApbBoundObject object = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(key).setType(POLICY).build();
+        Collection<? extends ByteString> policyValues = tx.readACLHelper(userid, object, READOBJECTACL);
         Set<ByteString> res = policyValues.stream().collect(Collectors.toSet());
         this.permissions.put(userid, res);
     }
@@ -47,7 +50,8 @@ public class S3ObjectACL extends S3ACL{
      * @param right
      */
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
-        tx.assignACLHelper(WRITEOBJECTACL, bucket, key, userid, encodeRight(right));
+        AntidotePB.ApbBoundObject object = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(key).setType(POLICY).build();
+        tx.assignACLHelper(userid, object, WRITEOBJECTACL, encodeRight(right));
     }
     
      /**
@@ -58,7 +62,8 @@ public class S3ObjectACL extends S3ACL{
      * @param userid
      */
     public void assignForUser(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid){
-        tx.assignACLHelper(WRITEOBJECTACL, bucket, key, userid, this.permissions.get(userid));
+        AntidotePB.ApbBoundObject object = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(key).setType(POLICY).build();
+        tx.assignACLHelper(userid, object, WRITEOBJECTACL, this.permissions.get(userid));
     }
     
      /**
@@ -71,8 +76,8 @@ public class S3ObjectACL extends S3ACL{
     public void assign(S3InteractiveTransaction tx, ByteString bucket, ByteString targetObject){
         Set<ByteString> users = this.permissions.keySet();
         for(ByteString targetUser:users){
-            tx.assignACLHelper(WRITEOBJECTACL, bucket, targetObject, targetUser, this.permissions.get(targetUser));
-            
+            AntidotePB.ApbBoundObject object = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(targetObject).setType(POLICY).build();
+            tx.assignACLHelper(targetUser, object, WRITEOBJECTACL, this.permissions.get(targetUser));
         }
     }
 

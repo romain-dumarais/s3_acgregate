@@ -1,6 +1,7 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.antidotepb.AntidotePB;
 import eu.antidotedb.client.accessresources.S3Operation;
 import eu.antidotedb.client.accessresources.S3Policy;
 import java.util.Collection;
@@ -29,26 +30,24 @@ public class S3InteractiveTransaction extends InteractiveTransaction {
     //ACCESS RESOURCE MANAGEMENT HELPERS
     /**
      * forwards the read ACL request to the AccessMonitor, for object or bucket ACL
+     * @param targetUser ID of the user for which the ACL is requested 
+     * @param targetObject object reference. object key may be null for a BucketACL
      * @param operation
-     * @param bucket
-     * @param key object key for an objct ACL, null for a BucketACL
-     * @param userid ID of the user for which the ACL is requested 
      * @return permissions set of permissions for the user {@param userID} and the requested resource
      */
-    public Collection<? extends ByteString> readACLHelper(S3Operation operation, ByteString bucket, ByteString key, ByteString userid){
-        return accessMonitor.readACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, bucket, key, userid);
+    public Collection<? extends ByteString> readACLHelper(ByteString targetUser, AntidotePB.ApbBoundObject targetObject, S3Operation operation){
+        return accessMonitor.readACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, targetObject, targetUser);
     }
     
     /**
      * forwards the assign request to the AccessMonitor, for object or bucket ACL
      * @param operation
-     * @param bucket
-     * @param targetObject
+     * @param targetObject reference of object to change
      * @param targetUser ID of the user for which the ACL is assigned 
      * @param permissions set of permissions for the user {@param userID} and the requested resource
      */
-    public void assignACLHelper(S3Operation operation, ByteString bucket, ByteString targetObject, ByteString targetUser, Collection<ByteString> permissions){
-        accessMonitor.assignACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, bucket, targetObject, targetUser, permissions);
+    public void assignACLHelper(ByteString targetUser, AntidotePB.ApbBoundObject targetObject, S3Operation operation, Collection<ByteString> permissions){
+        accessMonitor.assignACL(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, targetObject, targetUser, permissions);
     }
 
     public S3Policy readPolicyHelper(S3Operation operation, ByteString key) {
