@@ -22,11 +22,14 @@ import java.util.List;
 import java.util.Set;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test Class to implement scenarios 1 to 4
  * @author romain-dumarais
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class S3_Test1ACLs extends S3Test {
     
     public S3_Test1ACLs() {

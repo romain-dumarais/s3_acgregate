@@ -28,12 +28,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test Class to implement scenarios 5 to 10
  * @author romain-dumarais
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class S3_Test2Policies extends S3Test{
     final CrdtSet<String> object3;
     final Bucket<String> bucket2;

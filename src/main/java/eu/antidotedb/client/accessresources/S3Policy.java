@@ -149,7 +149,6 @@ public abstract class S3Policy {
                         }
                         break;
                     default:
-                        System.out.println(statement.getResources());
                         if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
                             && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
                             isExplicitDeny=true;

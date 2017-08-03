@@ -65,7 +65,7 @@ public class S3Test {
      */
     @Test
     public void initTests(){
-        System.out.println("#### tests ####");
+        System.out.println("#### DACCORD tests ####");
         S3_Test1ACLs test1 = new S3_Test1ACLs();
         S3_Test2Policies test2 = new S3_Test2Policies();
         S3_Test3Attacks test3 = new S3_Test3Attacks();
@@ -84,7 +84,8 @@ public class S3Test {
         test2.scenario_8();/*
         test2.scenario_9();//TODO : Romain : domain flags
         test2.scenario_10();//TODO : Romain : appliation layer
-        test3.scenario_11();//TODO : attacks
+        test3.scenario_11();
+        test3.scenario_12();
         */
     }
     

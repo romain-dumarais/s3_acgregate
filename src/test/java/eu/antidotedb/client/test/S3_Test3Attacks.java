@@ -19,13 +19,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import static org.junit.Assert.assertEquals;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * this class tests some specific attacks against S3 access control monitor
  * scenario 11
  * @author romain-dumarais
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class S3_Test3Attacks extends S3Test{
     
     public S3_Test3Attacks() {
