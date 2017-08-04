@@ -2,6 +2,14 @@ Antidote Access Control implementation
 ============
 
 ! CAUTION : WORK IN PROGRESS !
+ * domain flag : ok
+ * user Policies : ok
+ * bucket Policies : ok
+ * bucket ACL : ok
+ * object ACL : ok
+ * user & bucket groups : not implemented
+ * static Transactions : not implemented
+ * noTransaction : not implemented
 
 This is an implementation of an Access Control System for Antidote, based on S3 Access Control model.
 It is implemented upon Mathias Weber implementation of ACGreGate model (Access Control for geo-replicated Gateway).
