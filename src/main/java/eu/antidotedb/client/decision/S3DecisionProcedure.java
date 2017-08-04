@@ -13,10 +13,9 @@ import java.util.Collection;
  * is the user the domain root ? Is the user known in this domain ? 
  * Is there any explicit deny ? Any explicit allow ?
  * If needed, requests a group Policy
- * The code structure is voluntarily redundant to be clearer
+ * The code structure is voluntarily redundant to show a clear decision procedure 
  * @author romain-dumarais
  * TODO : Romain : add groups
- * TODO : Romain : add userData
  */
 public class S3DecisionProcedure {
     
@@ -29,11 +28,9 @@ public class S3DecisionProcedure {
      * the four access resources to check if the access is explicitly denied. 
      * If not, it reads again the four access resources to check if the access is 
      * explicitly allowed. If not, denies the access by default.
-     * @param domain
      * @param currentUser ID of the user performing the request
      * @param userData arbitrary Data for application-level operations and informations
-     * @param targetBucket key of the requested bucket
-     * @param targetObject key of the requested object
+     * @param targetObject the requested object
      * @param objectACL
      * @param bucketACL
      * @param bucketPolicy
@@ -118,12 +115,12 @@ public class S3DecisionProcedure {
     //--------------------------------
     //      ACL Management
     //--------------------------------
-    //TODO : Romain : userData
     
     //--------- Bucket ACL ----------
     
     public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, READBUCKETACL, targetObject.getBucket(), null, userData);
+        
         if(userPolicy.explicitDeny(request)){
             return false;
         }

@@ -723,57 +723,6 @@ public class S3_Test2Policies extends S3Test{
         }
     }
     
-    public void printResources(){
-        try{
-        S3InteractiveTransaction tx0 = antidoteClient.startTransaction(domain, domain);
-         S3ObjectACL object1ACL, object2ACL,object3ACL; 
-            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy, user1Policy;
-            object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); object3ACL = new S3ObjectACL();
-            bucketACL= new S3BucketACL();
-            bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();
-            user1Policy = new S3UserPolicy();
-            
-            object1ACL.readForUser(tx0, bucket1.getName(), object1.getRef().getKey(), admin);
-            object1ACL.readForUser(tx0, bucket1.getName(), object1.getRef().getKey(), user1);
-            object1ACL.readForUser(tx0, bucket1.getName(), object1.getRef().getKey(), user2);
-            object2ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), admin);
-            object2ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), user1);
-            object2ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), user2);
-            object3ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), admin);
-            object3ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), user1);
-            object3ACL.readForUser(tx0, bucket1.getName(), object2.getRef().getKey(), user2);
-            bucketACL.readForUser(tx0, bucket1.getName(), admin);
-            bucketACL.readForUser(tx0, bucket1.getName(), user1);
-            bucketACL.readForUser(tx0, bucket1.getName(), user2);
-            bucketPolicy.readPolicy(tx0, bucket1.getName());
-            adminPolicy.readPolicy(tx0, admin);
-            user1Policy.readPolicy(tx0, user1);
-            tx0.commitTransaction();
-            System.out.println("user1 / object 1 : "+object1ACL.getRight("user1"));
-            System.out.println("user2 / object 1 : "+object1ACL.getRight("user2"));
-            System.out.println("admin / object 1 : "+object1ACL.getRight("admin"));
-            System.out.println("user1 / object 2 : "+object2ACL.getRight("user1"));
-            System.out.println("user2 / object 2 : "+object2ACL.getRight("user2"));
-            System.out.println("admin / object 2 : "+object2ACL.getRight("admin"));
-            System.out.println("user1 / object 3 : "+object3ACL.getRight("user1"));
-            System.out.println("user2 / object 3 : "+object3ACL.getRight("user2"));
-            System.out.println("admin / object 3 : "+object3ACL.getRight("admin"));
-            System.out.println("user1 / bucket ACL : "+bucketACL.getRight("user1"));
-            System.out.println("user2 / bucket ACL : "+bucketACL.getRight("user2"));
-            System.out.println("admin / bucket ACL : "+bucketACL.getRight("admin"));
-            System.out.println("bucket");
-            for(S3Statement stat:bucketPolicy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
-            System.out.println("admin");
-            for(S3Statement stat:adminPolicy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
-            System.out.println("user1");
-            for(S3Statement stat:user1Policy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
-        }catch(Exception e){}
-    }
+    
     
 }
