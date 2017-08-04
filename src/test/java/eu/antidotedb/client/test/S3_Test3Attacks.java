@@ -69,8 +69,8 @@ public class S3_Test3Attacks extends S3Test{
             System.err.println("11: admin reset all resources : fail");
         }
         S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
-        ByteString mappingSecurityBucket = domainManager.getsecurityBucket(bucket1.getName());
-        ByteString mappingObjectACL = domainManager.getobjectACL(object1.getRef().getKey(),user1);
+        ByteString mappingSecurityBucket = domainManager.getKeyLink().securityBucket(bucket1.getName());
+        ByteString mappingObjectACL = domainManager.getKeyLink().objectACL(object1.getRef().getKey(),user1);
         //admin fails to write hadcoded object1 acl in hard coded security bucket
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
@@ -100,8 +100,8 @@ public class S3_Test3Attacks extends S3Test{
             System.err.println("11: access from time restriction : fail");
             System.err.println(e);
         }
-        ByteString mappingUserBucket = domainManager.getuserBucket();
-        ByteString mappingUserPolicy = domainManager.getuserPolicy(user1);
+        ByteString mappingUserBucket = domainManager.getKeyLink().userBucket(domain);
+        ByteString mappingUserPolicy = domainManager.getKeyLink().userPolicy(user1);
         //admin fails to create a user3 Policy in userbucket
         try{
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, domain);
@@ -145,7 +145,7 @@ public class S3_Test3Attacks extends S3Test{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
             for(int i=0; i<5;i++){
                 ByteString user = ByteString.copyFromUtf8("user"+i);
-                domainManager.createUser(user, tx1);
+                domainManager.createUser(tx1, user);
                 ArrayList<S3Statement> statements = new ArrayList<>();
                 statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), ""));
                 S3Policy userPolicy = new S3UserPolicy(new ArrayList<>(), statements);

@@ -79,7 +79,6 @@ public class S3_Test1ACLs extends S3Test {
         }
     }
     /**
-     * check no unsecure transaction
      * creation of 1 bucket with 2 objects
      * creation of 2 user : "admin" & "user"
      * creation of empty policies
@@ -95,7 +94,7 @@ public class S3_Test1ACLs extends S3Test {
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
             
-            domainManager.createBucket(bucket1.getName(), tx1);
+            domainManager.createBucket(tx1, bucket1.getName());
             object1.add("test 1 field 1");
             object1.add("test 1 field 2");
             object1.push(tx1);
@@ -115,8 +114,8 @@ public class S3_Test1ACLs extends S3Test {
         try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(domain,domain);
-            domainManager.createUser(admin, tx2);
-            domainManager.createUser(user1, tx2);            
+            domainManager.createUser(tx2, admin);
+            domainManager.createUser(tx2, user1);            
             tx2.commitTransaction();
             System.out.println("1 : creating users : success");
         }catch(Exception e){
@@ -125,7 +124,7 @@ public class S3_Test1ACLs extends S3Test {
         }
         
         //Check for metadata
-        try{
+        //try{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(domain,domain);
             S3ObjectACL object1ACL, object2ACL; 
@@ -151,13 +150,11 @@ public class S3_Test1ACLs extends S3Test {
             assert(bucketACL.getRight("admin").equals("default"));
             assert(bucketACL.getRight("user1").equals("default"));
             
-            //TODO : Romain : verify Policy
-            
             System.out.println("1 : checking metadata : success");
-        }catch(Exception e){
+        /*}catch(Exception e){
             System.err.println("1 : checking metadata : fail");
             System.err.println(e);
-        }
+        }*/
         
         //start unauthorized transaction
         try{
@@ -203,9 +200,9 @@ public class S3_Test1ACLs extends S3Test {
             new S3ObjectACL(permissions2).assign(tx1, bucket1.getName(), object2.getRef().getKey());
             
             tx1.commitTransaction();
-            System.out.println("2 : write in policies : success");
+            System.out.println("2 : write in ACLs : success");
         }catch(Exception e){
-            System.err.println("2 : write in policies : fail");
+            System.err.println("2 : write in ACLs : fail");
             System.err.println(e);
         }
         
@@ -254,6 +251,7 @@ public class S3_Test1ACLs extends S3Test {
         try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             
+            //use the static method because admin reduces his rights
             S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object1.getRef().getKey(), user1, "none");
             S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), object1.getRef().getKey(), admin, "writeACL");
             

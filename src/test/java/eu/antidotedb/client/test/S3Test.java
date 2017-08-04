@@ -7,6 +7,7 @@ import eu.antidotedb.client.CrdtMapDynamic;
 import eu.antidotedb.client.CrdtSet;
 import eu.antidotedb.client.MapRef;
 import eu.antidotedb.client.S3Client;
+import eu.antidotedb.client.S3Client.S3DomainManager;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.SetRef;
 import eu.antidotedb.client.ValueCoder;
@@ -16,6 +17,7 @@ import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
+import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.transformer.CountingTransformer;
 import eu.antidotedb.client.transformer.LogTransformer;
 import eu.antidotedb.client.transformer.TransformerFactory;
@@ -65,23 +67,51 @@ public class S3Test {
      * helper for netbeans environment
      */
     @Test
-    public void initTests(){
+    public void allTests(){
+        resetAll();
+        deleteEnv();
+        printResources();
         System.out.println("#### DACCORD tests ####");
         S3_Test1ACLs test1 = new S3_Test1ACLs();
         S3_Test2Policies test2 = new S3_Test2Policies();
         S3_Test3Attacks test3 = new S3_Test3Attacks();
-        resetAll();
-        test1.scenario_0();
-        test1.scenario_1();
-        test1.scenario_2();
+        
+        //verify that it is impossible to start unsecure transactions
+        test1.scenario_0(); 
+        
+        printResources();
+        
+        //creation of resources by domain root, check the metadata
+        test1.scenario_1(); 
+        
+        //domain root assigns some rights in ACLs, and we verify they are effective
+        test1.scenario_2(); 
+        
+        //verify ACLs prevent unauthorized access, and that admin and user can switch rights 
         test1.scenario_3();
+        
+        //verify that an Access Control Exception aborts the whole transaction
         test1.scenario_4();
+        
+        //init Policies and verify user Policies are effective
         test2.scenario_5init();
+        
+        //test bucket Policies based on bucket names & resources
         test2.scenario_5();
+        
+        //test bucket Policies based on CRDT types
         //test2.scenario_5bis();//TODO : Romain : type of resource
+        
+        //test bucket Policies based on crdt-specific updates operations
         //test2.scenario_5ter();//TODO : Romain : crdt specific operations
+        
+        //test user policies based on buckets
         test2.scenario_6();
+        
+        //check explicit deny --> revocation invariant
         test2.scenario_7();
+        
+        //check default deny --> initial invariant
         test2.scenario_8();/*
         test2.scenario_9();//TODO : Romain : domain flags
         test2.scenario_10();//TODO : Romain : appliation layer
@@ -90,7 +120,18 @@ public class S3Test {
         */
     }
     
-    void resetAll(){
+    private void deleteEnv(){
+        S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain, domain);
+        S3DomainManager root = antidoteClient.loginAsRoot(domain);
+        root.deleteBucket(tx1, bucket1.getName());
+        Bucket<String> bucket2 = Bucket.create("bucket2_for_other_TestS3");
+        root.deleteBucket(tx1, bucket2.getName());
+        root.deleteUser(tx1, user1);
+        root.deleteUser(tx1, admin);
+        root.deleteUser(tx1, user2);
+    }
+    
+    private void resetAll(){
         S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain, domain);
         S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
         S3Policy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
@@ -110,6 +151,8 @@ public class S3Test {
         bucketACL.assign(tx1, bucket1.getName());
         tx1.commitTransaction();
     }
+    
+    // FOR DEBUG PURPOSE
     
     public void printResources(){
         try{
@@ -150,17 +193,17 @@ public class S3Test {
             System.out.println("user2 / bucket ACL : "+bucketACL.getRight("user2"));
             System.out.println("admin / bucket ACL : "+bucketACL.getRight("admin"));
             System.out.println("bucket");
-            for(S3Statement stat:bucketPolicy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
+            bucketPolicy.getStatements().stream().forEach((stat) -> {System.out.println("  "
+                    +stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","
+                    +stat.getResources());});
             System.out.println("admin");
-            for(S3Statement stat:adminPolicy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
+            adminPolicy.getStatements().stream().forEach((stat) -> {System.out.println("  "
+                    +stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","
+                    +stat.getResources());});
             System.out.println("user1");
-            for(S3Statement stat:user1Policy.getStatements()){
-                System.out.println("  "+stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","+stat.getResources());
-            }
+            user1Policy.getStatements().stream().forEach((stat) -> {System.out.println("  "
+                    +stat.getEffect()+","+stat.getActions()+","+stat.getPrincipals()+","
+                    +stat.getResources());});
         }catch(Exception e){}
     }
     
