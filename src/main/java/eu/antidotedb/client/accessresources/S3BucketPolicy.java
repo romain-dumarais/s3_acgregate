@@ -46,7 +46,7 @@ public final class S3BucketPolicy extends S3Policy{
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString bucketID){
-        tx.assignPolicyHelper(ASSIGNBUCKETPOLICY, bucketID, this.encode());
+        tx.assignPolicyHelper(ASSIGNBUCKETPOLICY, bucketID, this);
     }
     
     @Override

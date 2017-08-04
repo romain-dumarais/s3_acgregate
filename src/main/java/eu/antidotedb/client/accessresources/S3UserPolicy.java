@@ -47,7 +47,7 @@ public final class S3UserPolicy extends S3Policy {
      */
     @Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
-        tx.assignPolicyHelper(ASSIGNUSERPOLICY, userkey, this.encode());
+        tx.assignPolicyHelper(ASSIGNUSERPOLICY, userkey, this);
     }
     
     @Override

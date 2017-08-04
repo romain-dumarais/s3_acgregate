@@ -9,7 +9,6 @@ import java.util.Collection;
 /**
  * class for antidote interactive transactions inside S3-like access control model
  * @author romain-dumarais
- * TODO : Romain : use bound object to make changes atomics
  */
 public class S3InteractiveTransaction extends InteractiveTransaction {
     private final S3AccessMonitor accessMonitor;
@@ -24,7 +23,6 @@ public class S3InteractiveTransaction extends InteractiveTransaction {
         super.onReleaseConnection(connection);
         accessMonitor.unsetCurrentUser(connection);
         accessMonitor.unsetUserData(connection);
-        accessMonitor.unsetDomain(connection);
     }
     
     //ACCESS RESOURCE MANAGEMENT HELPERS
@@ -54,8 +52,16 @@ public class S3InteractiveTransaction extends InteractiveTransaction {
         return accessMonitor.readPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, key);
     }
 
-    public void assignPolicyHelper(S3Operation operation, ByteString key, ByteString policyValue) {
-        accessMonitor.assignPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, key,policyValue);
+    public void assignPolicyHelper(S3Operation operation, ByteString key, S3Policy policyValue) {
+        accessMonitor.assignPolicy(new SocketSender(connection.getSocket()), connection, getDescriptor(), operation, key, policyValue);
+    }
+
+    public void initHelper(boolean isUser, ByteString domain, ByteString targetKey) {
+        accessMonitor.init(new SocketSender(connection.getSocket()),getDescriptor(), isUser, domain, targetKey);
+    }
+
+    public void deleteHelper(boolean isUser, ByteString domain, ByteString targetKey) {
+        accessMonitor.delete(new SocketSender(connection.getSocket()), getDescriptor(), isUser, domain, targetKey);
     }
     
 }

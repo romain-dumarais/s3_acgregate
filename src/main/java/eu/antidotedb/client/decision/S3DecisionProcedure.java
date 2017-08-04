@@ -7,6 +7,7 @@ import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import static eu.antidotedb.client.accessresources.S3Operation.*;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * this class performes the access decisions in an function-oriented way : 
@@ -37,12 +38,13 @@ public class S3DecisionProcedure {
      * @param userPolicy
      * @return isRequestAllowed
      */
-    public boolean decideObjectRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String, ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, READOBJECT, targetObject.getBucket(), targetObject.getKey(), userData);
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"read")){ 
@@ -71,10 +73,8 @@ public class S3DecisionProcedure {
      * the four access resources to check if the access is explicitly denied. 
      * If not, it reads again the four access resources to check if the access is 
      * explicitly allowed. If not, denies the access by default.
-     * @param domain
      * @param currentUser
      * @param userData
-     * @param targetBucket
      * @param targetObject
      * @param objectACL
      * @param bucketACL
@@ -82,12 +82,13 @@ public class S3DecisionProcedure {
      * @param userPolicy
      * @return isRequestAllowed
      */
-    public boolean decideObjectWrite(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectWrite(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, WRITEOBJECT, targetObject.getBucket(), targetObject.getKey(), null);
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"write")){ 
@@ -118,13 +119,13 @@ public class S3DecisionProcedure {
     
     //--------- Bucket ACL ----------
     
-    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, READBUCKETACL, targetObject.getBucket(), null, userData);
-        
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"readACL")){
@@ -142,12 +143,13 @@ public class S3DecisionProcedure {
         return false;
     }
     
-    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, WRITEBUCKETACL, targetObject.getBucket(), null, userData);
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"writeACL")){
@@ -167,12 +169,13 @@ public class S3DecisionProcedure {
     
     //--------- Object ACL ----------
     
-    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, READOBJECTACL, targetObject.getBucket(), targetObject.getKey(), userData);
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"readACL")){ 
@@ -198,12 +201,13 @@ public class S3DecisionProcedure {
         return false;
     }
     
-    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Object userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
         S3Request request = new S3Request(currentUser, WRITEOBJECTACL, targetObject.getBucket(), targetObject.getKey(), userData);
-        if(userPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(S3ACL.explicitDeny(bucketACL,"readACL")){ 
@@ -236,12 +240,13 @@ public class S3DecisionProcedure {
     
     //--------- Bucket Policy ----------
     
-    public boolean decideBucketPolicyRead(ByteString currentUser, ByteString targetBucket, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, READBUCKETPOLICY, targetBucket, null, null);
-        if(userPolicy.explicitDeny(request)){
+    public boolean decideBucketPolicyRead(ByteString currentUser, ByteString targetBucket, Map<String,ByteString> userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        S3Request request = new S3Request(currentUser, READBUCKETPOLICY, targetBucket, null, userData);
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(userPolicy.explicitAllow(request)){
@@ -253,12 +258,13 @@ public class S3DecisionProcedure {
         return false;
     }
     
-    public boolean decideBucketPolicyAssign(ByteString currentUser, ByteString targetBucket, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
-        S3Request request = new S3Request(currentUser, ASSIGNBUCKETPOLICY, targetBucket, null, null);
-        if(userPolicy.explicitDeny(request)){
+    public boolean decideBucketPolicyAssign(ByteString currentUser, ByteString targetBucket, Map<String,ByteString> userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+        S3Request request = new S3Request(currentUser, ASSIGNBUCKETPOLICY, targetBucket, null, userData);
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
-        if(bucketPolicy.explicitDeny(request)){
+        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
             return false;
         }
         if(userPolicy.explicitAllow(request)){
@@ -272,9 +278,10 @@ public class S3DecisionProcedure {
     
     //--------- User Policy ----------
     
-    public boolean decideUserPolicyRead(ByteString targetUser,S3UserPolicy currentUserPolicy){
-        S3Request request = new S3Request(null, READUSERPOLICY, null, targetUser, null);
-        if(currentUserPolicy.explicitDeny(request)){
+    public boolean decideUserPolicyRead(ByteString targetUser,S3UserPolicy currentUserPolicy, Map<String,ByteString> userData){
+        S3Request request = new S3Request(null, READUSERPOLICY, null, targetUser, userData);
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
             return false;
         }
         if(currentUserPolicy.explicitAllow(request)){
@@ -283,9 +290,10 @@ public class S3DecisionProcedure {
         return false;
     }
     
-    public boolean decideUserPolicyAssign(ByteString targetUser, S3UserPolicy currentUserPolicy){
+    public boolean decideUserPolicyAssign(ByteString targetUser, S3UserPolicy currentUserPolicy, Map<String,ByteString> userData){
         S3Request request = new S3Request(null, ASSIGNUSERPOLICY, null, targetUser, null);
-        if(currentUserPolicy.explicitDeny(request)){
+        ByteString domain = userData.get("domain");
+        if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
             return false;
         }
         if(currentUserPolicy.explicitAllow(request)){

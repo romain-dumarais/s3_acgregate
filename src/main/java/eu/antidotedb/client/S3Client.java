@@ -1,8 +1,6 @@
 package eu.antidotedb.client;
 
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.accessresources.S3BucketPolicy;
-import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
 import eu.antidotedb.client.decision.S3KeyLink;
 import eu.antidotedb.client.transformer.StaticInteractiveTransformer;
@@ -10,7 +8,9 @@ import eu.antidotedb.client.transformer.TransformerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to use the S3 Access Control over Antidote
@@ -54,12 +54,13 @@ public class S3Client extends AntidoteClient{
     //----------------------------------------
     
     //INTERACTIVE
-    public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Object userData){
+    public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Map<String, ByteString> userData){
         //if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         S3InteractiveTransaction tx = new S3InteractiveTransaction(this, this.accessMonitor);
+        if(userData == null) {userData=new HashMap<>();}
         this.accessMonitor.setCurrentUser(tx.connection, user);
-        this.accessMonitor.setDomain(tx.connection, domain);
-        if (userData != null) {this.accessMonitor.setUserData(tx.connection, userData);}
+        userData.put("domain", domain);
+        this.accessMonitor.setUserData(tx.connection, userData);
         return tx;
     }
     
@@ -68,7 +69,7 @@ public class S3Client extends AntidoteClient{
     }
     
     //STATIC
-    public SecuredStaticTransaction createStaticTransaction(ByteString user, ByteString domain, Object userData) {
+    public SecuredStaticTransaction createStaticTransaction(ByteString user, ByteString domain, Map<String, ByteString> userData) {
         //TODO : Romain : S3StaticTransaction
         //return new SecuredStaticTransaction(this, accessMonitor, user, userData);
         //if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
@@ -80,7 +81,7 @@ public class S3Client extends AntidoteClient{
     }
     
     //NOT TRANSACTION
-    public SecuredNoTransaction noTransaction(ByteString user, ByteString domain, Object userData) {
+    public SecuredNoTransaction noTransaction(ByteString user, ByteString domain, Map<String, ByteString> userData) {
         //TODO : Romain : S3NoTransaction
         //return new SecuredNoTransaction(this, accessMonitor, user, userData);
         //if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
@@ -145,78 +146,40 @@ public class S3Client extends AntidoteClient{
     
     
     //----------------------------------------
-    //OVERRIDE ACGreGate & unsecure client API
+    //        Get Key Mapping
     //----------------------------------------
     
-    //augmented API to start a root interactive transaction
     public S3DomainManager loginAsRoot(ByteString domain){
         return new S3DomainManager(domain);
     }
-    
-    
-    
 
     public static class S3DomainManager {
-        private final S3KeyLink keyLink = new S3KeyLink();
         private final ByteString domain;
-        
+
         public S3DomainManager(ByteString domain) {
             this.domain=domain;
         }
         
-        public void createBucket(ByteString bucketKey, S3InteractiveTransaction tx){
-            //TODO : Romain : initialize flag
-            S3BucketPolicy bucketPolicy = new S3BucketPolicy();
-            bucketPolicy.addGroup(domain);
-            bucketPolicy.assignPolicy(tx, bucketKey);
+        public void createBucket(S3InteractiveTransaction tx, ByteString bucketKey){
+            tx.initHelper(false, domain, bucketKey);
         }
 
-        public void deleteBucket(ByteString bucketKey, S3InteractiveTransaction tx){
-            //TODO : Romain : delete flag
-            throw new UnsupportedOperationException("not implemented yet");
+        public void deleteBucket(S3InteractiveTransaction tx, ByteString bucketKey){
+            tx.deleteHelper(false, domain, bucketKey);
         }
 
-        public void createUser(ByteString userKey, S3InteractiveTransaction tx){
-            //TODO : Romain : initialize flag
-            S3UserPolicy userPolicy = new S3UserPolicy();
-            userPolicy.addGroup(domain);
-            userPolicy.assignPolicy(tx, userKey);
+        public void createUser(S3InteractiveTransaction tx, ByteString userKey){
+            tx.initHelper(true, domain, userKey);
         }
 
-        public void deleteUser(ByteString userKey, S3InteractiveTransaction tx){
-            //TODO : Romain : delete flag
-            throw new UnsupportedOperationException("not implemented yet");
-        }
-        
-        
-        //get keylink mapping
-        public ByteString getsecurityBucket(ByteString bucketKey){
-            return this.keyLink.dataBucket(bucketKey);
-        }
-        public ByteString getdataBucket(ByteString bucketKey){
-            return this.keyLink.dataBucket(bucketKey);
+        public void deleteUser(S3InteractiveTransaction tx, ByteString userKey){
+            tx.deleteHelper(true, domain, userKey);
         }
 
-        public ByteString getuserBucket(){
-            return this.keyLink.userBucket(domain);
-        }
-
-        public ByteString getobjectACL(ByteString objectKey, ByteString userID){
-            return this.keyLink.objectACL(objectKey, userID);
-        }
-
-        public ByteString getbucketACL(ByteString userID){
-            return this.keyLink.bucketACL(userID);
-        }
-
-        public ByteString getbucketPolicy(){
-            return this.keyLink.bucketPolicy();
-        }
-
-        public ByteString getuserPolicy(ByteString user){
-            return this.keyLink.userPolicy(user);
+        public S3KeyLink getKeyLink(){
+            return new S3KeyLink();
         }
     }
     
-    
+
 }

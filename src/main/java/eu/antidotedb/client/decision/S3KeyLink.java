@@ -2,7 +2,6 @@ package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.accessresources.S3Policy;
-import java.util.List;
 
 /**
  * link between metadata and data. 
@@ -13,47 +12,51 @@ import java.util.List;
 public final class S3KeyLink {
     
     
+    //----------------------------------
+    //          Key Mapping
+    //----------------------------------
+    
     public ByteString domainFlag(ByteString bucketKey, ByteString objectKey){
         throw new UnsupportedOperationException("not implemented yet");
     }
     
-    public ByteString securityBucket(ByteString bucketKey){
+    public static ByteString securityBucket(ByteString bucketKey){
         if(bucketKey.toStringUtf8().startsWith("_")){
             throw new AccessControlException("not a valid bucket name");
         }
-        return ByteString.copyFromUtf8("_ACL_").concat(bucketKey);
+        return ByteString.copyFromUtf8("_acl_").concat(bucketKey);
     }
     
-    public ByteString dataBucket(ByteString bucketKey){
+    public static ByteString dataBucket(ByteString bucketKey){
         if(bucketKey.toStringUtf8().startsWith("_")){
             throw new AccessControlException("not a valid bucket name");
         }
         return ByteString.copyFromUtf8("_data_").concat(bucketKey);
     }
     
-    public ByteString userBucket(ByteString domain){
+    public static ByteString userBucket(ByteString domain){
         return ByteString.copyFromUtf8("_user_").concat(domain);
     }
     
-    public ByteString objectACL(ByteString objectKey, ByteString currentUser){
+    public static ByteString objectACL(ByteString objectKey, ByteString currentUser){
         return objectKey.concat(ByteString.copyFromUtf8("_")).concat(currentUser);
     }
     
-    public ByteString bucketACL(ByteString currentUser){
+    public static ByteString bucketACL(ByteString currentUser){
         return ByteString.copyFromUtf8("_bucket_acl_").concat(currentUser);
     }
     
-    public ByteString bucketPolicy(){
+    public static ByteString bucketPolicy(){
         return ByteString.copyFromUtf8("_bucket_policy");
     }
     
-    public ByteString userPolicy(ByteString user){
+    public static ByteString userPolicy(ByteString user){
         return user.concat(ByteString.copyFromUtf8("_policy"));
     }
     
     public static boolean isInitialized(S3Policy policy, ByteString domain) {
         return policy.getGroups().contains(domain);
     }
-
+    
     
 }
