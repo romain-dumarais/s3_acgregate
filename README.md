@@ -12,7 +12,7 @@ Antidote Access Control implementation
  * noTransaction : not implemented
 
 This is an implementation of an Access Control System for Antidote, based on S3 Access Control model.
-It is implemented upon Mathias Weber implementation of ACGreGate model (Access Control for geo-replicated Gateway).
+It is implemented above Mathias Weber implementation of ACGreGate model (Access Control for geo-replicated Gateway).
 
 You can find the JAVA client on the repository of the SyncFree project : https://github.com/SyncFree/antidote-java-client
 
