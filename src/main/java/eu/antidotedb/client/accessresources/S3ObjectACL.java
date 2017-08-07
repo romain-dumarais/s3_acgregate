@@ -6,8 +6,10 @@ import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.POLICY;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.READOBJECTACL;
 import static eu.antidotedb.client.accessresources.S3Operation.WRITEOBJECTACL;
+import eu.antidotedb.client.decision.AccessControlException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,36 @@ public class S3ObjectACL extends S3ACL{
     public S3ObjectACL(HashMap<String, String> rights) {
         super(rights);
     }
+    
+    
+    /**
+     * helper to translate a right to its format in ACL
+     * @param right string in @code{"none","read","write","readACL","writeACL"}
+     * @return set of ByteString for the corresponding right and the weaker rights
+     */
+    public Set<ByteString> encodeRight(String right){
+        Set<ByteString> rights = new HashSet<>();
+        switch(right){
+            case("writeACL"):
+                rights.add(ByteString.copyFromUtf8("writeACL"));
+            case("readACL"):
+                rights.add(ByteString.copyFromUtf8("readACL"));
+            case("write"):
+                rights.add(ByteString.copyFromUtf8("write"));
+            case("read"):
+                rights.add(ByteString.copyFromUtf8("read"));
+            case("none"):
+                rights.add(ByteString.copyFromUtf8("none"));
+            case("default"):
+                break;
+            default:
+                throw new AccessControlException("not an ACL right");
+        }
+        return rights;
+    }
+    
+    
+    
     
     /**
      * reads the right for a user in the database. Other users rights are not updated.
@@ -51,7 +83,8 @@ public class S3ObjectACL extends S3ACL{
      */
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString key, ByteString userid, String right){
         AntidotePB.ApbBoundObject object = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(key).setType(POLICY).build();
-        tx.assignACLHelper(userid, object, WRITEOBJECTACL, encodeRight(right));
+        S3ObjectACL objectACL = new S3ObjectACL();
+        tx.assignACLHelper(userid, object, WRITEOBJECTACL, objectACL.encodeRight(right));
     }
     
      /**

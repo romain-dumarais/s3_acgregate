@@ -76,11 +76,10 @@ public class JsonTest {
         S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
         S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), "another condition block");
         S3UserPolicy policy1 = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("user_group1")), Arrays.asList(statement1, statement2, statement3, statement4));
-        String stringPolicy = policy1.encode().toStringUtf8();
+        ByteString stringPolicy = policy1.encode();
         //System.out.println(stringPolicy);
         
-        S3UserPolicy policy2 = new S3UserPolicy();
-        policy2.decode(stringPolicy);
+        S3UserPolicy policy2 = new S3UserPolicy(stringPolicy);
         
         //policy1 is included in policy2
         for(int i=0;i<policy1.getStatements().size();i++){

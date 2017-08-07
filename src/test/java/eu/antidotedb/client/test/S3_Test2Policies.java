@@ -66,7 +66,7 @@ public class S3_Test2Policies extends S3Test{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             List<S3Statement> statements = new ArrayList<>();
             statements.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT),bucket1.getName(), Arrays.asList("*"), ""));
-            S3Policy user2Policy = new S3UserPolicy(Arrays.asList(domain), statements);
+            S3UserPolicy user2Policy = new S3UserPolicy(Arrays.asList(domain), statements);
             user2Policy.assignPolicy(tx1, user2);
             tx1.commitTransaction();
             System.err.println("5 : admin unauthorized to create user : fail");
@@ -81,7 +81,7 @@ public class S3_Test2Policies extends S3Test{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
             List<S3Statement> statements = new ArrayList<>();
             statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList(S3Operation.ASSIGNBUCKETPOLICY),bucket1.getName(), Arrays.asList("*"), ""));
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements);
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements);
             bucketPolicy.assignPolicy(tx2, bucket1.getName());
             tx2.commitTransaction();
             System.err.println("5 : admin unauthorized to write policies : fail");
@@ -106,7 +106,7 @@ public class S3_Test2Policies extends S3Test{
             statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList(READUSERPOLICY),bucket1.getName(), Arrays.asList("*"), ""));
             statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList(READOBJECTACL),bucket1.getName(), Arrays.asList("*"), ""));
             statements.add(new S3Statement(true, Arrays.asList("admin"), Arrays.asList(READBUCKETACL),bucket1.getName(), Arrays.asList("*"), ""));
-            S3Policy adminPolicy = new S3UserPolicy(new ArrayList<>(), statements);
+            S3UserPolicy adminPolicy = new S3UserPolicy(new ArrayList<>(), statements);
             adminPolicy.assignPolicy(tx3, admin);
             tx3.commitTransaction();
             System.out.println("5 : admin can write Policies : success");
@@ -144,7 +144,7 @@ public class S3_Test2Policies extends S3Test{
             //TODO : Romain : java client operations like getValues, isEmpty, or read request
             statements.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT),bucket1.getName(), Arrays.asList("object1TestS3"), ""));
             statements.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT),bucket1.getName(), Arrays.asList("object2TestS3"), ""));
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements);
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements);
             bucketPolicy.assignPolicy(tx4, bucket1.getName());
             tx4.commitTransaction();
             System.out.println("5 : admin writes bucket policy : success");
@@ -194,8 +194,8 @@ public class S3_Test2Policies extends S3Test{
             List<S3Statement> statements2 = new ArrayList<>();
             statements2.add(new S3Statement(false, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ORSET, ""));
             statements2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), GMAP, ""));
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements1);
-            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements1);
+            S3UserPolicy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             user2Policy.assignPolicy(tx1, user2);
             tx1.commitTransaction();
@@ -350,7 +350,7 @@ public class S3_Test2Policies extends S3Test{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             List<S3Statement> statements = new ArrayList<>();
             statements.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT), bucket1.getName(), ""));
-            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(), statements);
+            S3UserPolicy user1Policy = new S3UserPolicy(new ArrayList<>(), statements);
             user1Policy.assignPolicy(tx1, user1);
             tx1.commitTransaction();
             System.out.println("6 : admin write policy : success");
@@ -426,9 +426,9 @@ public class S3_Test2Policies extends S3Test{
             statements1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(READOBJECT), bucket1.getName(), ""));
             List<S3Statement> statements2 = new ArrayList<>();
             statements2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(READOBJECT), bucket1.getName(), ""));
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements0);
-            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),statements1);
-            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), statements0);
+            S3UserPolicy user1Policy = new S3UserPolicy(new ArrayList<>(),statements1);
+            S3UserPolicy user2Policy = new S3UserPolicy(new ArrayList<>(), statements2);
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             user1Policy.assignPolicy(tx1, user1);
             user2Policy.assignPolicy(tx1, user2);
@@ -488,11 +488,11 @@ public class S3_Test2Policies extends S3Test{
         //set situation
          try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
-            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
+            S3UserPolicy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
-            user1Policy.assignPolicy(tx1, user1);
-            user1Policy.assignPolicy(tx1, user2);
+            userPolicy.assignPolicy(tx1, user1);
+            userPolicy.assignPolicy(tx1, user2);
             
             HashMap<String, String> defaultPermissions;
             defaultPermissions = new HashMap<>();
@@ -645,17 +645,17 @@ public class S3_Test2Policies extends S3Test{
             resetObjACL.assign(tx1, bucket1.getName(), object1.getRef().getKey());
             resetObjACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
             resetBuckACL.assign(tx1, bucket1.getName());
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), new ArrayList<>());
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(), new ArrayList<>());
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             //restricting temporal access of user 1
             ArrayList<S3Statement> statement1 = new ArrayList<>();
             statement1.add(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), temporalrestriction));
-            S3Policy user1Policy = new S3UserPolicy(new ArrayList<>(), statement1);
+            S3UserPolicy user1Policy = new S3UserPolicy(new ArrayList<>(), statement1);
             user1Policy.assignPolicy(tx1, user1);
             //restricting spatial access of user 2
             ArrayList<S3Statement> statement2 = new ArrayList<>();
             statement2.add(new S3Statement(true, Arrays.asList("user2"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), iprestriction));
-            S3Policy user2Policy = new S3UserPolicy(new ArrayList<>(), statement2);
+            S3UserPolicy user2Policy = new S3UserPolicy(new ArrayList<>(), statement2);
             user2Policy.assignPolicy(tx1, user2);
             tx1.commitTransaction();
             System.out.println("10 : reset ACL, retrict policies : success");

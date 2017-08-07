@@ -128,7 +128,9 @@ public class S3_Test1ACLs extends S3Test {
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(domain,domain);
             S3ObjectACL object1ACL, object2ACL; 
-            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy;
+            S3BucketACL bucketACL;            
+            S3BucketPolicy bucketPolicy; 
+            S3UserPolicy adminPolicy;
             object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); bucketACL= new S3BucketACL();
             bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();
             

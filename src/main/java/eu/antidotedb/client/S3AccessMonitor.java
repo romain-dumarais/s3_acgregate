@@ -327,7 +327,7 @@ public class S3AccessMonitor extends AccessMonitor{
     
     /**
      * helper to merge concurrent updates for Policy objects
-     * @param policies set of concurrent objects
+     * @param concurrentPolicies set of concurrent objects
      * @param isUserPolicy flag for return Policy type
      * @return minimalPolicy the policy object with the intersection of the groups and statements
      */
@@ -338,17 +338,15 @@ public class S3AccessMonitor extends AccessMonitor{
                 return new S3BucketPolicy();//arbitrary choice
             case(1):
                 S3Policy policy0;
-                if(isUserPolicy){policy0 = new S3UserPolicy();
-                }else{policy0 = new S3BucketPolicy();}
-                policy0.decode(concurrentPolicies.get(0).toStringUtf8());
+                if(isUserPolicy){policy0 = new S3UserPolicy(concurrentPolicies.get(0));
+                }else{policy0 = new S3BucketPolicy(concurrentPolicies.get(0));}
                 return policy0;
             default:
                 List<S3Policy> policies = new ArrayList<>();
                 for(ByteString stringPolicy:concurrentPolicies){
                     S3Policy policy;
-                    if(isUserPolicy){policy = new S3UserPolicy();
-                    }else{policy = new S3BucketPolicy();}
-                    policy.decode(stringPolicy.toStringUtf8());
+                    if(isUserPolicy){policy = new S3UserPolicy(stringPolicy);//TODO : Romain : I do not necessarily need the flag
+                    }else{policy = new S3BucketPolicy(stringPolicy);}
                     policies.add(policy);
                 }
                 S3Policy minimalPolicy;
@@ -469,8 +467,13 @@ public class S3AccessMonitor extends AccessMonitor{
         Collection<ByteString> objectACL;
         
         //TODO : Romain : remove casts
+        //List<S3Policy> policies = new ArrayList<>();
         S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
         S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());
+        //policies.add(userPolicy);
+        //policies.add(bucketPolicy);
+        
+        
         switch(operation){
             case READOBJECTACL:
                  objectACL = readHelper(downstream, descriptor, AntidotePB.ApbBoundObject.newBuilder()

@@ -131,8 +131,8 @@ public class S3Test {
     
     private void resetAll(){
         S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain, domain);
-        S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
-        S3Policy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+        S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
+        S3UserPolicy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
         bucketPolicy.assignPolicy(tx1, bucket1.getName());
         userPolicy.assignPolicy(tx1, user1);
         userPolicy.assignPolicy(tx1, user2);
@@ -156,7 +156,8 @@ public class S3Test {
         try{
         S3InteractiveTransaction tx0 = antidoteClient.startTransaction(domain, domain);
          S3ObjectACL object1ACL, object2ACL,object3ACL; 
-            S3BucketACL bucketACL;            S3Policy bucketPolicy, adminPolicy, user1Policy;
+            S3BucketACL bucketACL;            S3BucketPolicy bucketPolicy;
+            S3UserPolicy adminPolicy, user1Policy;
             object1ACL = new S3ObjectACL(); object2ACL = new S3ObjectACL(); object3ACL = new S3ObjectACL();
             bucketACL= new S3BucketACL();
             bucketPolicy = new S3BucketPolicy(); adminPolicy = new S3UserPolicy();

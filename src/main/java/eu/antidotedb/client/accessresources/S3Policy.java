@@ -3,10 +3,12 @@ package eu.antidotedb.client.accessresources;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.*;
 import eu.antidotedb.client.decision.S3Request;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,14 +21,29 @@ import java.util.List;
  * TODO : statement for user policy management : currently needs a non-null bucket
  * @author romain-dumarais
  */
-public abstract class S3Policy{
+public class S3Policy {
 
+    //TODO : Romain : domain flag read-only
     protected List<S3Statement> statements;
     protected List<ByteString> groups;
     
     public S3Policy(List<ByteString> groups, List<S3Statement> statements){
         this.groups=groups;
         this.statements=statements;
+    }
+    
+    public S3Policy(ByteString encodedValue){
+        this.groups=new ArrayList<>();
+        this.statements=new ArrayList<>();
+        JsonObject value = Json.parse(encodedValue.toStringUtf8()).asObject();
+        JsonArray jsonGroups = value.get("Groups").asArray();
+        JsonArray jsonStatements = value.get("Statements").asArray();
+        for(JsonValue jsongroup : jsonGroups){
+            this.groups.add(ByteString.copyFromUtf8(jsongroup.asString()));
+        }
+        for(JsonValue jsonstatement : jsonStatements){
+            this.statements.add(S3Statement.decodeStatic(jsonstatement.asObject()));
+        }
     }
     
     public List<ByteString> getGroups(){
@@ -54,14 +71,14 @@ public abstract class S3Policy{
      * @param tx the current transaction
      * @param key either the bucket key or the userID
      */
-    public abstract void readPolicy(S3InteractiveTransaction tx, ByteString key);
+    //public abstract void readPolicy(S3InteractiveTransaction tx, ByteString key);
 
     /**
      * assigns the current Policy object value to the remote policy 
      * @param tx the current transaction
      * @param key either the bucket key or the userID
      */
-    public abstract void assignPolicy(S3InteractiveTransaction tx, ByteString key);
+    //public abstract void assignPolicy(S3InteractiveTransaction tx, ByteString key); 
     
     
     //--------------------------------
@@ -82,7 +99,6 @@ public abstract class S3Policy{
         return ByteString.copyFromUtf8(jsonPolicy.toString());
     }
     
-    public abstract void decode(String stringPolicy);
     
     //--------------------------------
     //        Decision process
@@ -126,7 +142,7 @@ public abstract class S3Policy{
     
     public boolean explicitDeny(S3Request request){
         boolean isExplicitDeny=false;
-        for(S3Statement statement: statements){
+        for(S3Statement statement:statements){
             if(!statement.getEffect()){
                 switch(request.action){
                 //if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){

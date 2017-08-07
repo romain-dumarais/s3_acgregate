@@ -22,7 +22,7 @@ public abstract class S3ACL{
     public S3ACL(Map<String, String> rights){
         this.permissions = new HashMap<>();
         for(String user:rights.keySet()){
-            this.permissions.put(ByteString.copyFromUtf8(user), encodeRight(rights.get(user)));
+            this.permissions.put(ByteString.copyFromUtf8(user), this.encodeRight(rights.get(user)));
         }
     }
     
@@ -31,7 +31,7 @@ public abstract class S3ACL{
     }
     
     public void setRight(String userID, String right){
-        this.permissions.put(ByteString.copyFromUtf8(userID), encodeRight(right));
+        this.permissions.put(ByteString.copyFromUtf8(userID), this.encodeRight(right));
     }
     
     /**
@@ -39,66 +39,37 @@ public abstract class S3ACL{
      * @param right string in @code{"none","read","write","readACL","writeACL"}
      * @return set of ByteString for the corresponding right and the weaker rights
      */
-    public static Set<ByteString> encodeRight(String right){
-        Set<ByteString> rights = new HashSet<>();
-        switch(right){
-            case("default"):
-                break;
-            case("none"):
-                rights.add(ByteString.copyFromUtf8("none"));
-                break;
-            case("read"):
-                rights.add(ByteString.copyFromUtf8("none"));
-                rights.add(ByteString.copyFromUtf8("read"));
-                break;
-            case("write"):
-                rights.add(ByteString.copyFromUtf8("none"));
-                rights.add(ByteString.copyFromUtf8("read"));
-                rights.add(ByteString.copyFromUtf8("write"));
-                break;
-            case("readACL"):
-                rights.add(ByteString.copyFromUtf8("none"));
-                rights.add(ByteString.copyFromUtf8("read"));
-                rights.add(ByteString.copyFromUtf8("write"));
-                rights.add(ByteString.copyFromUtf8("readACL"));
-                break;
-            case("writeACL"):
-                rights.add(ByteString.copyFromUtf8("none"));
-                rights.add(ByteString.copyFromUtf8("read"));
-                rights.add(ByteString.copyFromUtf8("write"));
-                rights.add(ByteString.copyFromUtf8("readACL"));
-                rights.add(ByteString.copyFromUtf8("writeACL"));
-                break;
-            default:
-                throw new AccessControlException("not an ACL right");
-        }
-        return rights;
-    }
-    
-    public static String decodeRight(Set<ByteString> acl){
+    public abstract Set<ByteString> encodeRight(String right);
+
+    /**
+     * helper to read a encoded right
+     * @param acl set of rights as encoded in Antidote
+     * @return String {@code "default" | "none" | "read" | "write" | "readACL" | "writeACL"}
+     */
+    public String decodeRight(Set<ByteString> acl){
         String result = "";
         switch(acl.size()){
             case(0):
                 result="default";
                 break;
             case(1):
-                if(acl.equals(encodeRight("none"))){result="none";}
+                if(acl.equals(this.encodeRight("none"))){result="none";}
                 else{throw new AccessControlException("not an ACL right");}
                 break;
             case(2):
-                if(acl.equals(encodeRight("read"))){result="read";}
+                if(acl.equals(this.encodeRight("read"))){result="read";}
                 else{throw new AccessControlException("not an ACL right");}
                 break;
             case(3):
-                if(acl.equals(encodeRight("write"))){result="write";}
+                if(acl.equals(this.encodeRight("write"))){result="write";}
                 else{throw new AccessControlException("not an ACL right");}
                 break;
             case(4):
-                if(acl.equals(encodeRight("readACL"))){result="readACL";}
+                if(acl.equals(this.encodeRight("readACL"))){result="readACL";}
                 else{throw new AccessControlException("not an ACL right");}
                 break;
             case(5):
-                if(acl.equals(encodeRight("writeACL"))){result="writeACL";}
+                if(acl.equals(this.encodeRight("writeACL"))){result="writeACL";}
                 else{throw new AccessControlException("not an ACL right");}
                 break;
             default:

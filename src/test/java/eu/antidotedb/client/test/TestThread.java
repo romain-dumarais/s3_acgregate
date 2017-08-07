@@ -45,14 +45,14 @@ class TestThread implements Runnable {
             //user1
             S3Statement statement1 = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), Arrays.asList("object1TestS3"), "");
             S3Statement statement2 = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), Arrays.asList("object2TestS3"), "");
-            S3Policy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),Arrays.asList(statement1,statement2));
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),Arrays.asList(statement1,statement2));
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             //user2
             S3BucketACL.assignForUserStatic(tx1, bucket1.getName(),ByteString.copyFromUtf8("user2"),"write");
             //user3
             S3Statement statement3 = new S3Statement(true, Arrays.asList("user3"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), Arrays.asList("object1TestS3"), "");
             S3Statement statement4 = new S3Statement(true, Arrays.asList("user3"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), Arrays.asList("object2TestS3"), "");
-            S3Policy user3Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(statement3,statement4));
+            S3UserPolicy user3Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(statement3,statement4));
             user3Policy.assignPolicy(tx1, ByteString.copyFromUtf8("user3"));
             //user4
             S3ObjectACL.assignForUserStatic(tx1, bucket1.getName(), ByteString.copyFromUtf8("object1TestS3"), ByteString.copyFromUtf8("user4"),"write");

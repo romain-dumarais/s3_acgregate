@@ -9,7 +9,6 @@ import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.ASSIGNUSERPOLICY;
 import static eu.antidotedb.client.accessresources.S3Operation.READUSERPOLICY;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,12 +26,16 @@ public final class S3UserPolicy extends S3Policy {
         super(new ArrayList<>(), new ArrayList<>());
     }
     
+    public S3UserPolicy(ByteString encodedValue){
+        super(encodedValue);
+    }
+    
     /**
      * updates the current policy object with the statement and groups from a remote user in the database
      * @param tx
      * @param userID user from which the policy is requested
      */
-    @Override
+    //@Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
         S3UserPolicy remotePolicy = (S3UserPolicy) tx.readPolicyHelper(READUSERPOLICY, userID);
         super.statements.clear(); super.groups.clear();
@@ -45,11 +48,12 @@ public final class S3UserPolicy extends S3Policy {
      * @param tx current transaction
      * @param userkey user to which assign this policy
      */
-    @Override
+    //@Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
         tx.assignPolicyHelper(ASSIGNUSERPOLICY, userkey, this);
     }
     
+    /*
     @Override
     public void decode(String stringPolicy) {
         JsonObject value = Json.parse(stringPolicy).asObject();
@@ -62,5 +66,5 @@ public final class S3UserPolicy extends S3Policy {
         for(JsonValue jsonstatement : jsonStatements){
             this.statements.add(S3Statement.decodeStatic(jsonstatement.asObject()));
         }
-    }   
+    }   */
 }

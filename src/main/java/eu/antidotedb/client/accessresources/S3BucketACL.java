@@ -6,8 +6,10 @@ import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.POLICY;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.WRITEBUCKETACL;
 import static eu.antidotedb.client.accessresources.S3Operation.READBUCKETACL;
+import eu.antidotedb.client.decision.AccessControlException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,36 @@ public class S3BucketACL extends S3ACL{
     public S3BucketACL(HashMap<String, String> rights) {
         super(rights);
     }
+    
+    
+    /**
+     * helper to translate a right to its format in ACL
+     * @param right string in @code{"none","read","write","readACL","writeACL"}
+     * @return set of ByteString for the corresponding right and the weaker rights
+     */
+    public Set<ByteString> encodeRight(String right){
+        Set<ByteString> rights = new HashSet<>();
+        switch(right){
+            case("writeACL"):
+                rights.add(ByteString.copyFromUtf8("writeACL"));
+            case("readACL"):
+                rights.add(ByteString.copyFromUtf8("readACL"));
+            case("write"):
+                rights.add(ByteString.copyFromUtf8("write"));
+            case("read"):
+                rights.add(ByteString.copyFromUtf8("read"));
+            case("none"):
+                rights.add(ByteString.copyFromUtf8("none"));
+            case("default"):
+                break;
+            default:
+                throw new AccessControlException("not an ACL right");
+        }
+        return rights;
+    }
+    
+    
+    
     
     /**
      * reads the rights for a user in the database and update it locally. Other
@@ -50,7 +82,8 @@ public class S3BucketACL extends S3ACL{
     public static void assignForUserStatic(S3InteractiveTransaction tx, ByteString bucket, ByteString userid, String right){
         //the key is not necessary, but it is required in the ProtoBuf
         AntidotePB.ApbBoundObject targetBucket = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(ByteString.copyFromUtf8("bucketACL")).setType(POLICY).build();
-        tx.assignACLHelper(userid, targetBucket, WRITEBUCKETACL, encodeRight(right));
+        S3BucketACL bucketACL = new S3BucketACL();
+        tx.assignACLHelper(userid, targetBucket, WRITEBUCKETACL, bucketACL.encodeRight(right));
     }
     
     /**
@@ -73,7 +106,7 @@ public class S3BucketACL extends S3ACL{
       */
     public void assign(S3InteractiveTransaction tx, ByteString bucket){
         Set<ByteString> users = this.permissions.keySet();
-        //the key is not necessary, but it is required in the ProtoBuf
+        //the key is not necessary, but it is required field in the ProtoBuf
         AntidotePB.ApbBoundObject targetBucket = AntidotePB.ApbBoundObject.newBuilder().setBucket(bucket).setKey(ByteString.copyFromUtf8("bucketACL")).setType(POLICY).build();
         users.stream().forEach((user) -> {
             tx.assignACLHelper(user, targetBucket, WRITEBUCKETACL, this.permissions.get(user));
