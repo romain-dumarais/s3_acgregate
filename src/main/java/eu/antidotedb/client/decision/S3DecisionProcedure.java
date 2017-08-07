@@ -5,6 +5,7 @@ import eu.antidotedb.antidotepb.AntidotePB;
 import eu.antidotedb.client.LayerDefinition;
 import eu.antidotedb.client.SecurityLayers;
 import eu.antidotedb.client.accessresources.S3ACL;
+import eu.antidotedb.client.accessresources.S3AccessResource;
 import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Operation;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
@@ -18,22 +19,17 @@ import java.util.Map;
  * is the user the domain root ? Is the user known in this domain ? 
  * Is there any explicit deny ? Any explicit allow ?
  * If needed, requests a group Policy
- * The code structure is voluntarily redundant to show a clear decision procedure 
  * @author romain-dumarais
  * TODO : Romain : add groups
+ * TODO : Romain : check initialization
  */
-public class S3DecisionProcedure implements DecisionProcedure {
+public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
     //--------------------------------
     //      Object Management
     //--------------------------------
     
     
-    
-    @Override
-    public boolean decideRead(ByteString currentUser, AntidotePB.ApbBoundObject object, Object userData, SecurityLayers layers) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     /**
      * decision Process for a read request. It creates a request object and reads
      * the four access resources to check if the access is explicitly denied. 
@@ -42,19 +38,24 @@ public class S3DecisionProcedure implements DecisionProcedure {
      * @param currentUser ID of the user performing the request
      * @param userData arbitrary Data for application-level operations and informations
      * @param targetObject the requested object
-     * @param objectACL
-     * @param bucketACL
-     * @param bucketPolicy
-     * @param userPolicy
+     * @param accessResources
      * @return isRequestAllowed
      */
-    public boolean decideRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String, ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String, ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READOBJECT, targetObject, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -79,13 +80,9 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(objectACL,"read")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
-    @Override
-    public boolean decideUpdate(ByteString currentUser, AntidotePB.ApbBoundObject object, AntidotePB.ApbUpdateOperation op, Object userData, SecurityLayers layers) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
     /**
      * decision Process for a write request. It creates a request object and reads
@@ -95,20 +92,25 @@ public class S3DecisionProcedure implements DecisionProcedure {
      * @param currentUser
      * @param userData
      * @param targetObject
-     * @param objectACL
-     * @param bucketACL
-     * @param bucketPolicy
-     * @param userPolicy
+     * @param accessResources
      * @return isRequestAllowed
      * TODO : Romain : ApbOperation
      */
-    public boolean decideUpdate(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideUpdate(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEOBJECT, targetObject, null);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -133,7 +135,7 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(objectACL,"write")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
     
@@ -143,13 +145,21 @@ public class S3DecisionProcedure implements DecisionProcedure {
     
     //--------- Bucket ACL ----------
     
-    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READBUCKETACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -168,16 +178,26 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(bucketACL,"readACL")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
-    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEBUCKETACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+/*        
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -196,18 +216,29 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(bucketACL,"writeACL")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
     //--------- Object ACL ----------
     
-    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READOBJECTACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
+        
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -234,16 +265,25 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(objectACL,"readACL")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
-    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Collection<ByteString> objectACL, Collection<ByteString> bucketACL, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEOBJECTACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
+        if(currentUser.equals(domain)){return true;}
         
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -270,7 +310,7 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(S3ACL.explicitAllow(objectACL,"readACL")){
             return true;
         }
-        return false;
+        return false;*/
     }
     
     //--------------------------------
@@ -280,13 +320,23 @@ public class S3DecisionProcedure implements DecisionProcedure {
     
     //--------- Bucket Policy ----------
     
-    public boolean decideBucketPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READBUCKETPOLICY, targetBucket, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -299,16 +349,26 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(bucketPolicy.explicitAllow(request)){
             return true;
         }
-        return false;
+        return false;*/
     }
     
-    public boolean decideBucketPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, S3BucketPolicy bucketPolicy, S3UserPolicy userPolicy){
+    public boolean decideBucketPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, ASSIGNBUCKETPOLICY, targetBucket, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
             return false;
         }
@@ -321,45 +381,64 @@ public class S3DecisionProcedure implements DecisionProcedure {
         if(bucketPolicy.explicitAllow(request)){
             return true;
         }
-        return false;
+        return false;*/
     }
     
     //--------- User Policy ----------
     
-    public boolean decideUserPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, S3UserPolicy currentUserPolicy){
+    public boolean decideUserPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(null, READUSERPOLICY, targetUser, userData);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
             return false;
         }
         if(currentUserPolicy.explicitAllow(request)){
             return true;
         }
-        return false;
+        return false;*/
     }
     
-    public boolean decideUserPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, S3UserPolicy currentUserPolicy){
+    public boolean decideUserPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
         S3Request request = new S3Request(null, ASSIGNUSERPOLICY, targetUser, null);
         ByteString domain = userData.get("domain");
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        if(currentUser.equals(domain)){return true;}
+        
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitDeny(request)){return false;}
+        }
+        for(S3AccessResource resource: accessResources.values()){
+            if(resource.explicitAllow(request)){return false;}
+        }
+        return false;
+        /*
         if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
             return false;
         }
         if(currentUserPolicy.explicitAllow(request)){
             return true;
         }
-        return false;
+        return false;*/
     }
 
-
-    public Map<String, AntidotePB.ApbBoundObject> requestedPolicies(ByteString currentUser, ByteString domain, AntidotePB.ApbBoundObject object, S3Operation operation) {
+    public Map<String, AntidotePB.ApbBoundObject> s3requestedPolicies(ByteString currentUser, ByteString domain, AntidotePB.ApbBoundObject object, S3Operation operation) {
         HashMap<String, AntidotePB.ApbBoundObject> requestedPolicies = new HashMap<>();
         switch(operation){
             case READOBJECTACL:
@@ -397,19 +476,5 @@ public class S3DecisionProcedure implements DecisionProcedure {
         return requestedPolicies;
     }
 
-    @Override
-    public boolean decidePolicyAssign(AntidotePB.ApbBoundObject key, Collection<ByteString> oldPolicy, Collection<ByteString> newPolicy, Object userData, SecurityLayers layers) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean decidePolicyRead(AntidotePB.ApbBoundObject key, Object userData, SecurityLayers layers) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public LayerDefinition requestedPolicies(AntidotePB.ApbBoundObject object) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     
 }

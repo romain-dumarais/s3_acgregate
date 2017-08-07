@@ -5,7 +5,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
-import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.*;
 import eu.antidotedb.client.decision.S3Request;
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ import java.util.List;
  * TODO : statement for user policy management : currently needs a non-null bucket
  * @author romain-dumarais
  */
-public class S3Policy {
+public class S3Policy implements S3AccessResource{
 
     protected List<S3Statement> statements;
     protected List<ByteString> groups;

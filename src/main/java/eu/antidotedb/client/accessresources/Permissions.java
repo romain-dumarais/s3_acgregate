@@ -5,13 +5,13 @@ import eu.antidotedb.client.decision.S3Request;
 import java.util.Collection;
 
 /**
- *
+ * simplified ACL for management in decision procedure
  * @author romain-dumarais
  */
 public class Permissions implements S3AccessResource{
     private final Collection<ByteString> permissions;
 
-    Permissions(Collection<ByteString> permissions) {
+    public Permissions(Collection<ByteString> permissions) {
         this.permissions=permissions;
     }
 
