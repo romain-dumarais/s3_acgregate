@@ -23,7 +23,6 @@ import java.util.List;
  */
 public class S3Policy {
 
-    //TODO : Romain : domain flag read-only
     protected List<S3Statement> statements;
     protected List<ByteString> groups;
     

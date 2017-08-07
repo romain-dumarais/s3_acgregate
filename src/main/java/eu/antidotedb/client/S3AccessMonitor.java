@@ -281,23 +281,22 @@ public class S3AccessMonitor extends AccessMonitor{
                         .setBucket(S3KeyLink.userBucket(currentDomain(connection)))
                         .setKey(S3KeyLink.userPolicy(key))
                         .setType(AntidotePB.CRDT_type.MVREG)
-                        .build()).getMvreg().getValuesList(), true);
-                break;
+                        .build()).getMvreg().getValuesList());
+                resultPolicy.removeGroup(currentDomain(connection));//make the read-only domain flag not readable for users
+                return new S3UserPolicy(resultPolicy.getGroups(), resultPolicy.getStatements());
             case READBUCKETPOLICY:
                 resultPolicy = policyMergerHelper(readHelper(downstream, 
                         descriptor, AntidotePB.ApbBoundObject.newBuilder()
                         .setBucket(S3KeyLink.securityBucket(key))
                         .setKey(S3KeyLink.bucketPolicy())
                         .setType(AntidotePB.CRDT_type.MVREG)
-                        .build()).getMvreg().getValuesList(), false);
-                break;
+                        .build()).getMvreg().getValuesList());
+                resultPolicy.removeGroup(currentDomain(connection));//make the read-only domain flag not readable for users
+                return new S3BucketPolicy(resultPolicy.getGroups(), resultPolicy.getStatements());
             default:
                 throw new AccessControlException("unsupported operation");
             }
-            //make the read-only domain flag not readable for users
-            resultPolicy.removeGroup(currentDomain(connection));
             
-            return resultPolicy;
         }
     }
 
@@ -309,7 +308,7 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param policyKey
      * @return concurrentPolicies collection of concurrent policies
      */
-    S3Policy readPolicyUnchecked(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, boolean isUserPolicy, ByteString securityBucket, ByteString policyKey){
+    S3Policy readPolicyUnchecked(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, ByteString securityBucket, ByteString policyKey){
         AntidotePB.ApbReadObjects.Builder readRequest = AntidotePB.ApbReadObjects.newBuilder()
                     .setTransactionDescriptor(descriptor)
                     .addBoundobjects(AntidotePB.ApbBoundObject.newBuilder()
@@ -322,36 +321,27 @@ public class S3AccessMonitor extends AccessMonitor{
         List<ByteString> concurrentPolicies = policyResp.getObjects(0).getMvreg().getValuesList();
         
         
-        return policyMergerHelper(concurrentPolicies, isUserPolicy);
+        return policyMergerHelper(concurrentPolicies);
     }
     
     /**
      * helper to merge concurrent updates for Policy objects
      * @param concurrentPolicies set of concurrent objects
-     * @param isUserPolicy flag for return Policy type
      * @return minimalPolicy the policy object with the intersection of the groups and statements
      */
-    public S3Policy policyMergerHelper(List<ByteString> concurrentPolicies, boolean isUserPolicy){
+    public S3Policy policyMergerHelper(List<ByteString> concurrentPolicies){
         
         switch(concurrentPolicies.size()){
             case(0):
                 return new S3BucketPolicy();//arbitrary choice
             case(1):
-                S3Policy policy0;
-                if(isUserPolicy){policy0 = new S3UserPolicy(concurrentPolicies.get(0));
-                }else{policy0 = new S3BucketPolicy(concurrentPolicies.get(0));}
-                return policy0;
+                return new S3Policy(concurrentPolicies.get(0));
             default:
                 List<S3Policy> policies = new ArrayList<>();
                 for(ByteString stringPolicy:concurrentPolicies){
-                    S3Policy policy;
-                    if(isUserPolicy){policy = new S3UserPolicy(stringPolicy);//TODO : Romain : I do not necessarily need the flag
-                    }else{policy = new S3BucketPolicy(stringPolicy);}
-                    policies.add(policy);
+                    policies.add(new S3Policy(stringPolicy));
                 }
-                S3Policy minimalPolicy;
-                if(isUserPolicy){minimalPolicy = new S3UserPolicy();
-                }else{minimalPolicy = new S3BucketPolicy();}
+                S3Policy minimalPolicy = new S3Policy(new ArrayList<>(), new ArrayList<>());//empty Policy
                 List<ByteString> groupList = policies.get(0).getGroups();
                 List<S3Statement> statementsList = policies.get(0).getStatements();
                 for(ByteString group : groupList){
@@ -424,10 +414,11 @@ public class S3AccessMonitor extends AccessMonitor{
                 .setKey(S3KeyLink.objectACL(targetObject.getKey(), currentUser))
                 .setType(POLICY)
                 .build()).getPolicy().getPermissionsList();
-        S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;//TODO : Romain : remove casts
         
-        userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
-        bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());
+        //TODO : Romain : remove casts
+        S3UserPolicy userPolicy; S3BucketPolicy bucketPolicy;
+        userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
+        bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());
         //call decision Procedure
         switch(operation){
         case WRITEOBJECT:
@@ -468,8 +459,8 @@ public class S3AccessMonitor extends AccessMonitor{
         
         //TODO : Romain : remove casts
         //List<S3Policy> policies = new ArrayList<>();
-        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
-        S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());
+        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
+        S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());
         //policies.add(userPolicy);
         //policies.add(bucketPolicy);
         
@@ -521,7 +512,7 @@ public class S3AccessMonitor extends AccessMonitor{
         //TODO : Romain : remove casts
         
         S3BucketPolicy bucketPolicy;
-        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, true, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
+        S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
         AntidotePB.ApbBoundObject target;
         switch(operation){
             case ASSIGNUSERPOLICY:
@@ -537,12 +528,12 @@ public class S3AccessMonitor extends AccessMonitor{
             case ASSIGNBUCKETPOLICY:
                 target= AntidotePB.ApbBoundObject.newBuilder().setKey(ByteString.copyFromUtf8("bucketPolicy"))
                         .setBucket(key).setType(POLICY).build();
-                bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, S3KeyLink.securityBucket(key), S3KeyLink.bucketPolicy());
+                bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.securityBucket(key), S3KeyLink.bucketPolicy());
                 return this.decisionprocedure.decideBucketPolicyAssign(currentUser, target, currentUserData(connection), bucketPolicy, userPolicy);
             case READBUCKETPOLICY:
                 target= AntidotePB.ApbBoundObject.newBuilder().setKey(ByteString.copyFromUtf8("bucketPolicy"))
                         .setBucket(key).setType(POLICY).build();
-                bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, false, S3KeyLink.securityBucket(key), S3KeyLink.bucketPolicy());
+                bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.securityBucket(key), S3KeyLink.bucketPolicy());
                 return this.decisionprocedure.decideBucketPolicyRead(currentUser, target, currentUserData(connection), bucketPolicy, userPolicy);
             default:
                 throw new AccessControlException("unsupported operation");

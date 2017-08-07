@@ -1,16 +1,11 @@
 package eu.antidotedb.client.accessresources;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.ASSIGNUSERPOLICY;
 import static eu.antidotedb.client.accessresources.S3Operation.READUSERPOLICY;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * class for UserPolicy Management, extends the S3Policy general class

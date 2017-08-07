@@ -1,9 +1,5 @@
 package eu.antidotedb.client.accessresources;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.ASSIGNBUCKETPOLICY;

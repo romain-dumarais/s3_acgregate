@@ -40,10 +40,10 @@ public class mergerTest {
         ByteString policy2 = policy2object.encode();
         ByteString policy3 = policy3object.encode();
         
-        S3Policy minimalpolicy0 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy1)),true);
-        S3Policy minimalpolicy1 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy2)),true);
-        S3Policy minimalpolicy2 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy3)),true);
-        S3Policy minimalpolicy3 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy2, policy3)),true);
+        S3Policy minimalpolicy0 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy1)));
+        S3Policy minimalpolicy1 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy2)));
+        S3Policy minimalpolicy2 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy3)));
+        S3Policy minimalpolicy3 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy2, policy3)));
         
         S3UserPolicy expectedminimalpolicy1 = new S3UserPolicy(new ArrayList<>(), new ArrayList(Arrays.asList(statement1, statement2, statement3)));
         S3UserPolicy expectedminimalpolicy2 = new S3UserPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group1"))), new ArrayList(Arrays.asList(statement1, statement2, statement4)));
@@ -66,10 +66,10 @@ public class mergerTest {
         ByteString policy2 = policy2object.encode();
         ByteString policy3 = policy3object.encode();
         
-        S3Policy minimalpolicy0 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy1)),false);
-        S3Policy minimalpolicy1 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy2)),false);
-        S3Policy minimalpolicy2 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy3)),false);
-        S3Policy minimalpolicy3 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy2, policy3)),false);
+        S3Policy minimalpolicy0 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy1)));
+        S3Policy minimalpolicy1 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy2)));
+        S3Policy minimalpolicy2 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy1, policy3)));
+        S3Policy minimalpolicy3 = accessMonitor.policyMergerHelper(new ArrayList(Arrays.asList(policy1, policy2, policy3)));
         
         S3BucketPolicy expectedminimalpolicy1 = new S3BucketPolicy(new ArrayList<>(), new ArrayList(Arrays.asList(statement1, statement2, statement3)));
         S3BucketPolicy expectedminimalpolicy2 = new S3BucketPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group1"))), new ArrayList(Arrays.asList(statement1, statement2, statement4)));
