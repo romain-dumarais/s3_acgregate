@@ -53,18 +53,4 @@ public final class S3BucketPolicy extends S3Policy{
         tx.assignPolicyHelper(ASSIGNBUCKETPOLICY, bucketID, this);
     }
     
-    /*
-    @Override
-    public void decode(String stringPolicy) {
-        JsonObject value = Json.parse(stringPolicy).asObject();
-        JsonArray jsonGroups = value.get("Groups").asArray();
-        JsonArray jsonStatements = value.get("Statements").asArray();
-        for(JsonValue jsongroup : jsonGroups){
-            this.groups.add(ByteString.copyFromUtf8(jsongroup.asString()));
-        }
-        for(JsonValue jsonstatement : jsonStatements){
-            this.statements.add(S3Statement.decodeStatic(jsonstatement.asObject()));
-        }
-    }*/
-    
 }

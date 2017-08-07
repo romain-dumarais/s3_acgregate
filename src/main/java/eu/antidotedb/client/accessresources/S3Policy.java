@@ -66,20 +66,6 @@ public class S3Policy {
         this.groups.remove(group);
     }
     
-    /**
-     * updates the current policy object with a remote Policy value
-     * @param tx the current transaction
-     * @param key either the bucket key or the userID
-     */
-    //public abstract void readPolicy(S3InteractiveTransaction tx, ByteString key);
-
-    /**
-     * assigns the current Policy object value to the remote policy 
-     * @param tx the current transaction
-     * @param key either the bucket key or the userID
-     */
-    //public abstract void assignPolicy(S3InteractiveTransaction tx, ByteString key); 
-    
     
     //--------------------------------
     //      communication

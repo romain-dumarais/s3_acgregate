@@ -32,10 +32,9 @@ public final class S3UserPolicy extends S3Policy {
     
     /**
      * updates the current policy object with the statement and groups from a remote user in the database
-     * @param tx
+     * @param tx transaction with read
      * @param userID user from which the policy is requested
      */
-    //@Override
     public void readPolicy(S3InteractiveTransaction tx, ByteString userID){
         S3UserPolicy remotePolicy = (S3UserPolicy) tx.readPolicyHelper(READUSERPOLICY, userID);
         super.statements.clear(); super.groups.clear();
@@ -48,23 +47,8 @@ public final class S3UserPolicy extends S3Policy {
      * @param tx current transaction
      * @param userkey user to which assign this policy
      */
-    //@Override
     public void assignPolicy(S3InteractiveTransaction tx, ByteString userkey){
         tx.assignPolicyHelper(ASSIGNUSERPOLICY, userkey, this);
     }
     
-    /*
-    @Override
-    public void decode(String stringPolicy) {
-        JsonObject value = Json.parse(stringPolicy).asObject();
-        this.statements.clear(); this.groups.clear();
-        JsonArray jsonGroups = value.get("Groups").asArray();
-        JsonArray jsonStatements = value.get("Statements").asArray();
-        for(JsonValue jsongroup : jsonGroups){
-            this.groups.add(ByteString.copyFromUtf8(jsongroup.asString()));
-        }
-        for(JsonValue jsonstatement : jsonStatements){
-            this.statements.add(S3Statement.decodeStatic(jsonstatement.asObject()));
-        }
-    }   */
 }
