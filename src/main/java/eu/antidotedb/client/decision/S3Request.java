@@ -1,6 +1,7 @@
 package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.antidotepb.AntidotePB;
 import eu.antidotedb.client.accessresources.S3Operation;
 
 /**
@@ -13,11 +14,11 @@ public final class S3Request {
     public final Object userData;
     
     
-    public S3Request(ByteString subject, S3Operation action, ByteString targetBucket, ByteString targetKey, Object userData){
+    public S3Request(ByteString subject, S3Operation action, AntidotePB.ApbBoundObject target, Object userData){
         this.action=action;
         this.subject=subject;
-        this.targetBucket=targetBucket;
-        this.targetKey=targetKey;
+        this.targetBucket=target.getBucket();
+        this.targetKey=target.getKey();
         this.userData=userData;
     }
     

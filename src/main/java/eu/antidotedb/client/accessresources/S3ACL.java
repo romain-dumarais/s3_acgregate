@@ -2,11 +2,9 @@ package eu.antidotedb.client.accessresources;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.decision.AccessControlException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -108,8 +106,10 @@ public abstract class S3ACL{
         }
         return result;
     }
+
     
-    public static boolean explicitAllow(Collection<ByteString> acl,String operation){
+    
+    public static boolean explicitAllow(Collection<ByteString> acl, String operation){
         return acl.contains(ByteString.copyFromUtf8(operation));
     }
     
@@ -120,4 +120,5 @@ public abstract class S3ACL{
             return !acl.contains(ByteString.copyFromUtf8(operation));
         }
     }
+
 }

@@ -19,9 +19,8 @@ import java.util.List;
  * TODO : statement for user policy management : currently needs a non-null bucket
  * @author romain-dumarais
  */
-public abstract class S3Policy {
+public abstract class S3Policy{
 
-    //TODO : Romain : domain flag read-only
     protected List<S3Statement> statements;
     protected List<ByteString> groups;
     
@@ -127,7 +126,7 @@ public abstract class S3Policy {
     
     public boolean explicitDeny(S3Request request){
         boolean isExplicitDeny=false;
-        for(S3Statement statement:statements){
+        for(S3Statement statement: statements){
             if(!statement.getEffect()){
                 switch(request.action){
                 //if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
