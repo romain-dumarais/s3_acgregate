@@ -66,7 +66,6 @@ public class S3Policy {
         this.groups.remove(group);
     }
     
-    
     //--------------------------------
     //      communication
     //--------------------------------
