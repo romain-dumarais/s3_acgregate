@@ -56,32 +56,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"read")){ 
-            return false;
-        }
-        if(S3ACL.explicitDeny(objectACL,"read")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"read")){
-            return true;
-        }
-        if(S3ACL.explicitAllow(objectACL,"read")){
-            return true;
-        }
-        return false;*/
     }
     
 
@@ -118,32 +92,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"write")){ 
-            return false;
-        }
-        if(S3ACL.explicitDeny(objectACL,"write")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"write")){
-            return true;
-        }
-        if(S3ACL.explicitAllow(objectACL,"write")){
-            return true;
-        }
-        return false;*/
     }
     
     
@@ -173,26 +121,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"readACL")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"readACL")){
-            return true;
-        }
-        return false;*/
     }
     
     public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
@@ -215,26 +143,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-/*        
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"writeACL")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"writeACL")){
-            return true;
-        }
-        return false;*/
     }
     
     //--------- Object ACL ----------
@@ -259,35 +167,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"readACL")){ 
-            //TODO : Romain : document this choice
-            return false;
-        }
-        if(S3ACL.explicitDeny(objectACL,"readACL")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"readACL")){
-            //TODO : Romain : document this choice
-            return true;
-        }
-        if(S3ACL.explicitAllow(objectACL,"readACL")){
-            return true;
-        }
-        return false;*/
     }
     
     public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
@@ -310,34 +189,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(S3ACL.explicitDeny(bucketACL,"readACL")){ 
-            //TODO : Romain : document this choice
-            return false;
-        }
-        if(S3ACL.explicitDeny(objectACL,"readACL")){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(S3ACL.explicitAllow(bucketACL,"readACL")){
-            //TODO : Romain : document this choice
-            return true;
-        }
-        if(S3ACL.explicitAllow(objectACL,"readACL")){
-            return true;
-        }
-        return false;*/
     }
     
     //--------------------------------
@@ -367,20 +218,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        return false;*/
     }
     
     public boolean decideBucketPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
@@ -403,20 +240,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(userPolicy, domain) || userPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(!S3KeyLink.isInitialized(bucketPolicy, domain) || bucketPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(userPolicy.explicitAllow(request)){
-            return true;
-        }
-        if(bucketPolicy.explicitAllow(request)){
-            return true;
-        }
-        return false;*/
     }
     
     //--------- User Policy ----------
@@ -441,14 +264,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(currentUserPolicy.explicitAllow(request)){
-            return true;
-        }
-        return false;*/
     }
     
     public boolean decideUserPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
@@ -471,14 +286,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
-        /*
-        if(!S3KeyLink.isInitialized(currentUserPolicy, domain) || currentUserPolicy.explicitDeny(request)){
-            return false;
-        }
-        if(currentUserPolicy.explicitAllow(request)){
-            return true;
-        }
-        return false;*/
     }
 
     public Map<String, AntidotePB.ApbBoundObject> s3requestedPolicies(ByteString currentUser, ByteString domain, AntidotePB.ApbBoundObject object, S3Operation operation) {
