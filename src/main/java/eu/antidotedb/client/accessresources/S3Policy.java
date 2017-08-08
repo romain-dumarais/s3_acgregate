@@ -87,6 +87,7 @@ public class S3Policy implements S3AccessResource{
     //        Decision process
     //--------------------------------
     
+    @Override
     public boolean explicitAllow(S3Request request){
         boolean isExplicitAllow=false;
         for(S3Statement statement:statements){
@@ -123,6 +124,7 @@ public class S3Policy implements S3AccessResource{
         return isExplicitAllow;
     }
     
+    @Override
     public boolean explicitDeny(S3Request request){
         boolean isExplicitDeny=false;
         for(S3Statement statement:statements){
@@ -158,6 +160,7 @@ public class S3Policy implements S3AccessResource{
         }
         return isExplicitDeny;
     }
+    
     
     //--------------------------------
     //          Helpers

@@ -208,6 +208,8 @@ public class S3_Test1ACLs extends S3Test {
             System.err.println(e);
         }
         
+        printResources();
+        
         //test admin ACLs
         //try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);

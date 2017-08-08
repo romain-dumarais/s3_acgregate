@@ -28,6 +28,5 @@ public class Permissions implements S3AccessResource{
     public boolean explicitAllow(S3Request request) {
         return this.permissions.contains(ByteString.copyFromUtf8(request.action.toString()));
     }
-    
-    
+
 }

@@ -215,7 +215,7 @@ public class S3AccessMonitor extends AccessMonitor{
             }
             
             //add the read-only domain flag
-            policyObject.addGroup(currentDomain(connection));
+            policyObject.addGroup(S3KeyLink.domainFlag(currentDomain(connection)));
             ByteString policyValue = policyObject.encode();
                   
             //policy assignment
@@ -286,7 +286,7 @@ public class S3AccessMonitor extends AccessMonitor{
                         .setKey(S3KeyLink.userPolicy(key))
                         .setType(AntidotePB.CRDT_type.MVREG)
                         .build()).getMvreg().getValuesList());
-                resultPolicy.removeGroup(currentDomain(connection));//make the read-only domain flag not readable for users
+                resultPolicy.removeGroup(S3KeyLink.domainFlag(currentDomain(connection)));//make the read-only domain flag not readable for users
                 return new S3UserPolicy(resultPolicy.getGroups(), resultPolicy.getStatements());
             case READBUCKETPOLICY:
                 resultPolicy = policyMergerHelper(readHelper(downstream, 
@@ -295,7 +295,7 @@ public class S3AccessMonitor extends AccessMonitor{
                         .setKey(S3KeyLink.bucketPolicy())
                         .setType(AntidotePB.CRDT_type.MVREG)
                         .build()).getMvreg().getValuesList());
-                resultPolicy.removeGroup(currentDomain(connection));//make the read-only domain flag not readable for users
+                resultPolicy.removeGroup(S3KeyLink.domainFlag(currentDomain(connection)));//make the read-only domain flag not readable for users
                 return new S3BucketPolicy(resultPolicy.getGroups(), resultPolicy.getStatements());
             default:
                 throw new AccessControlException("unsupported operation");
@@ -412,7 +412,7 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString currentUser = currentUser(connection);
 
         //root credentials
-        if(domain.equals(currentUser)){return true;}
+        //if(domain.equals(currentUser)){return true;}
         
         Map<String, AntidotePB.ApbBoundObject> requestedPolicies = this.decisionprocedure.s3requestedPolicies(currentUser, domain, targetObject, operation);
         Map<String, S3AccessResource> accessResources = getResources(downstream, descriptor, requestedPolicies);
@@ -459,7 +459,7 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString currentUser = currentUser(connection);
         
         //root credentials
-        if(domain.equals(currentUser)){return true;}
+        //if(domain.equals(currentUser)){return true;}
         
         /*Collection<ByteString> bucketACL = readHelper(downstream, descriptor, AntidotePB.ApbBoundObject.newBuilder()
                 .setBucket(S3KeyLink.securityBucket(targetObject.getBucket()))
@@ -514,7 +514,7 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString currentUser = currentUser(connection);
         
         //root credentials
-        if(domain.equals(currentUser)){return true;}
+        //if(domain.equals(currentUser)){return true;}
         
         //TODO : Romain : remove casts
         
@@ -640,11 +640,11 @@ public class S3AccessMonitor extends AccessMonitor{
         ByteString policyBucket, policyKey, domainflag;
         if(isUser){policyBucket=S3KeyLink.userBucket(domain);
         policyKey=S3KeyLink.userPolicy(targetKey);
-        S3UserPolicy flag=new S3UserPolicy(); flag.addGroup(domain);
+        S3UserPolicy flag=new S3UserPolicy(); flag.addGroup(S3KeyLink.domainFlag(domain));
         domainflag=flag.encode();}
         else{policyBucket=S3KeyLink.securityBucket(targetKey);
         policyKey=S3KeyLink.bucketPolicy();
-        S3BucketPolicy flag=new S3BucketPolicy(); flag.addGroup(domain);
+        S3BucketPolicy flag=new S3BucketPolicy(); flag.addGroup(S3KeyLink.domainFlag(domain));
         domainflag=flag.encode();}
 
         //policy assignment

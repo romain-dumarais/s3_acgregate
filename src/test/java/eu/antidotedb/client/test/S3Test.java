@@ -77,8 +77,6 @@ public class S3Test {
         //verify that it is impossible to start unsecure transactions
         test1.scenario_0(); 
         
-        printResources();
-        
         //creation of resources by domain root, check the metadata
         test1.scenario_1(); 
         
@@ -110,8 +108,12 @@ public class S3Test {
         test2.scenario_7();
         
         //check default deny --> initial invariant
-        test2.scenario_8();/*
-        test2.scenario_9();//TODO : Romain : domain flags
+        test2.scenario_8();
+        
+        //check domain invariant & domain flag functions
+        test2.scenario_9();
+        
+        /*
         test2.scenario_10();//TODO : Romain : appliation layer
         test3.scenario_11();
         test3.scenario_12();

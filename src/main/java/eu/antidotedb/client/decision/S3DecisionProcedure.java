@@ -2,15 +2,9 @@ package eu.antidotedb.client.decision;
 
 import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
-import eu.antidotedb.client.LayerDefinition;
-import eu.antidotedb.client.SecurityLayers;
-import eu.antidotedb.client.accessresources.S3ACL;
 import eu.antidotedb.client.accessresources.S3AccessResource;
-import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Operation;
-import eu.antidotedb.client.accessresources.S3UserPolicy;
 import static eu.antidotedb.client.accessresources.S3Operation.*;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +41,13 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
+        
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
+        
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -103,6 +104,13 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){
+                return false;}
+        }
+        
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
         }
@@ -152,6 +160,12 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
+        
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
         }
@@ -188,7 +202,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -228,7 +246,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -274,7 +296,12 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //root transaction
         if(currentUser.equals(domain)){return true;}
-        if(currentUser.equals(domain)){return true;}
+        
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -327,7 +354,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -359,7 +390,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -393,7 +428,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}
@@ -419,7 +458,11 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         //root transaction
         if(currentUser.equals(domain)){return true;}
         
-        if(currentUser.equals(domain)){return true;}
+        //check that groups, buckets and users have been created by the domain 
+        //root authority
+        for(S3AccessResource resource : accessResources.values()){
+            if(!S3KeyLink.isInitialized(resource,domain)){return false;}
+        }
         
         for(S3AccessResource resource: accessResources.values()){
             if(resource.explicitDeny(request)){return false;}

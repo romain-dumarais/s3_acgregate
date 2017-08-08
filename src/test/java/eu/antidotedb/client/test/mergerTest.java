@@ -3,6 +3,8 @@ package eu.antidotedb.client.test;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.S3AccessMonitor;
+import eu.antidotedb.client.accessresources.Permissions;
+import eu.antidotedb.client.accessresources.S3AccessResource;
 import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
@@ -10,6 +12,7 @@ import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Operation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -95,6 +98,27 @@ public class mergerTest {
         }
         for(int i=0; i<policy.getStatements().size();i++){
         Assert.assertEquals(policy.getStatement(i),expectedPolicy.getStatement(i));
+        }
+    }
+    
+    /**
+     * short test for instanceof in initialization flag checking
+     */
+    @Test
+    public void instanceofTest(){
+        S3AccessResource permission1, userPolicy, policy;
+        permission1=new Permissions(new ArrayList<>());
+        userPolicy = new S3UserPolicy();
+        S3Policy bucketPolicy = new S3BucketPolicy();
+        policy = new S3Policy(bucketPolicy.encode());
+        List<S3AccessResource> list = Arrays.asList(permission1, userPolicy, bucketPolicy, policy);
+        for(S3AccessResource resource : list){
+            if(resource instanceof Permissions){
+                Assert.assertEquals(resource,permission1);
+            }
+            if(resource instanceof S3Policy){
+                Assert.assertTrue(Arrays.asList(userPolicy, policy, bucketPolicy).contains(resource));
+            }
         }
     }
     

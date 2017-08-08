@@ -12,4 +12,5 @@ public interface S3AccessResource {
     boolean explicitDeny(S3Request request);   
     
     boolean explicitAllow(S3Request request);
+    
 }
