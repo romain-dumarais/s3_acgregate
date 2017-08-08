@@ -209,7 +209,7 @@ public class S3_Test1ACLs extends S3Test {
         }
         
         //test admin ACLs
-        try{
+        //try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(admin, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx2); //write object1
@@ -217,10 +217,10 @@ public class S3_Test1ACLs extends S3Test {
             object2.push(tx2); //read object2
             tx2.commitTransaction();
             System.out.println("2 : admin ACL : success");
-        }catch(Exception e){
+        /*}catch(Exception e){
             System.err.println("2 : admin ACL : fail");
             System.err.println(e);
-        }
+        }*/
         
         //test user1 ACLs
         try{
@@ -228,7 +228,7 @@ public class S3_Test1ACLs extends S3Test {
             S3InteractiveTransaction tx3 = antidoteClient.startTransaction(user1, domain);
             object1.add("test 2 field 1 (expected)");
             object1.push(tx3); //write object1
-            int testInteger = object2.getRef().read(tx3).counter("testInteger");
+            testInteger = object2.getRef().read(tx3).counter("testInteger");
             object2.push(tx3); //read object2
             tx3.commitTransaction();
             System.err.println("2 : user1 ACL : fail");

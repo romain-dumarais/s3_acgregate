@@ -52,7 +52,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -107,7 +107,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -156,7 +156,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -194,7 +194,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
 /*        
@@ -234,7 +234,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -280,7 +280,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -333,7 +333,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -365,7 +365,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -399,7 +399,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
@@ -425,7 +425,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
             if(resource.explicitDeny(request)){return false;}
         }
         for(S3AccessResource resource: accessResources.values()){
-            if(resource.explicitAllow(request)){return false;}
+            if(resource.explicitAllow(request)){return true;}
         }
         return false;
         /*
