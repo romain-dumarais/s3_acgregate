@@ -6,6 +6,10 @@ import static eu.antidotedb.antidotepb.AntidotePB.CRDT_type.POLICY;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import static eu.antidotedb.client.accessresources.S3Operation.WRITEBUCKETACL;
 import static eu.antidotedb.client.accessresources.S3Operation.READBUCKETACL;
+import static eu.antidotedb.client.accessresources.S3Operation.READOBJECT;
+import static eu.antidotedb.client.accessresources.S3Operation.READOBJECTACL;
+import static eu.antidotedb.client.accessresources.S3Operation.WRITEOBJECT;
+import static eu.antidotedb.client.accessresources.S3Operation.WRITEOBJECTACL;
 import eu.antidotedb.client.decision.AccessControlException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,13 +41,15 @@ public class S3BucketACL extends S3ACL{
         Set<ByteString> rights = new HashSet<>();
         switch(right){
             case("writeACL"):
-                rights.add(ByteString.copyFromUtf8("writeACL"));
+                rights.add(ByteString.copyFromUtf8(WRITEBUCKETACL.toString()));
+                rights.add(ByteString.copyFromUtf8(WRITEOBJECTACL.toString()));
             case("readACL"):
-                rights.add(ByteString.copyFromUtf8("readACL"));
+                rights.add(ByteString.copyFromUtf8(READBUCKETACL.toString()));
+                rights.add(ByteString.copyFromUtf8(READOBJECTACL.toString()));
             case("write"):
-                rights.add(ByteString.copyFromUtf8("write"));
+                rights.add(ByteString.copyFromUtf8(WRITEOBJECT.toString()));
             case("read"):
-                rights.add(ByteString.copyFromUtf8("read"));
+                rights.add(ByteString.copyFromUtf8(READOBJECT.toString()));
             case("none"):
                 rights.add(ByteString.copyFromUtf8("none"));
             case("default"):
