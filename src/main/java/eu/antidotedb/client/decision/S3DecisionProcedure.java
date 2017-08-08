@@ -7,6 +7,7 @@ import eu.antidotedb.client.accessresources.S3Operation;
 import static eu.antidotedb.client.accessresources.S3Operation.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * this class performes the access decisions in an function-oriented way : 
@@ -35,7 +36,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
      * @param accessResources
      * @return isRequestAllowed
      */
-    public boolean decideRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String, ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String, ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READOBJECT, targetObject, userData);
         ByteString domain = userData.get("domain");
         
@@ -44,15 +45,15 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
@@ -71,7 +72,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
      * @return isRequestAllowed
      * TODO : Romain : ApbOperation
      */
-    public boolean decideUpdate(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideUpdate(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEOBJECT, targetObject, null);
         ByteString domain = userData.get("domain");
         
@@ -80,15 +81,15 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){
                 return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
@@ -101,7 +102,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
     //--------- Bucket ACL ----------
     
-    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideBucketACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READBUCKETACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
@@ -110,20 +111,20 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
     }
     
-    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideBucketACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEBUCKETACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
@@ -132,14 +133,14 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
@@ -147,7 +148,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
     //--------- Object ACL ----------
     
-    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideObjectACLRead(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READOBJECTACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
@@ -156,20 +157,20 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
     }
     
-    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideObjectACLAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetObject, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, WRITEOBJECTACL, targetObject, userData);
         ByteString domain = userData.get("domain");
         
@@ -178,14 +179,14 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
@@ -198,7 +199,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
     //--------- Bucket Policy ----------
     
-    public boolean decideBucketPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideBucketPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, READBUCKETPOLICY, targetBucket, userData);
         ByteString domain = userData.get("domain");
         
@@ -207,20 +208,20 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
     }
     
-    public boolean decideBucketPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideBucketPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetBucket, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(currentUser, ASSIGNBUCKETPOLICY, targetBucket, userData);
         ByteString domain = userData.get("domain");
         
@@ -229,14 +230,14 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
@@ -244,7 +245,7 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
     //--------- User Policy ----------
     
-    public boolean decideUserPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideUserPolicyRead(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(null, READUSERPOLICY, targetUser, userData);
         ByteString domain = userData.get("domain");
         
@@ -253,20 +254,20 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;
     }
     
-    public boolean decideUserPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, Map<String, S3AccessResource> accessResources){
+    public boolean decideUserPolicyAssign(ByteString currentUser, AntidotePB.ApbBoundObject targetUser, Map<String,ByteString> userData, List<S3AccessResource> accessResources){
         S3Request request = new S3Request(null, ASSIGNUSERPOLICY, targetUser, null);
         ByteString domain = userData.get("domain");
         
@@ -275,14 +276,14 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
         
         //check that groups, buckets and users have been created by the domain 
         //root authority
-        for(S3AccessResource resource : accessResources.values()){
+        for(S3AccessResource resource : accessResources){
             if(!S3KeyLink.isInitialized(resource,domain)){return false;}
         }
         
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitDeny(request)){return false;}
         }
-        for(S3AccessResource resource: accessResources.values()){
+        for(S3AccessResource resource: accessResources){
             if(resource.explicitAllow(request)){return true;}
         }
         return false;

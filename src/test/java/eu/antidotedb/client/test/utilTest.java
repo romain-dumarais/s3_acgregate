@@ -1,8 +1,12 @@
 package eu.antidotedb.client.test;
 
 import com.google.protobuf.ByteString;
+import eu.antidotedb.client.AntidoteClient;
+import eu.antidotedb.client.AntidoteConfigManager;
 import eu.antidotedb.client.Bucket;
 import eu.antidotedb.client.S3AccessMonitor;
+import eu.antidotedb.client.S3Client;
+import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.Permissions;
 import eu.antidotedb.client.accessresources.S3AccessResource;
 import eu.antidotedb.client.accessresources.S3Policy;
@@ -17,10 +21,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * test class to test the minimal policy merging
+ * test class to test the minimal policy merging and other features used in the 
+ * Access Control
  * @author romain-dumarais
  */
-public class mergerTest {
+public class utilTest {
     final S3AccessMonitor accessMonitor = new S3AccessMonitor();
     final Bucket<String> bucket1=Bucket.create("testbucket");
     final ByteString domain = ByteString.copyFromUtf8("test_domain");
@@ -121,5 +126,20 @@ public class mergerTest {
             }
         }
     }
+    
+    /**
+     * test to check if a domain flag is understood as specified
+     */
+    /*
+    @Test
+    public void domainFlagTest(){
+        AntidoteConfigManager antidoteConfigManager = new AntidoteConfigManager();
+        S3Client antidoteClient = new S3Client(antidoteConfigManager.getConfigHosts());
+        //Bucket<String> bucket1 = Bucket.create("bucketTestS3");
+        S3InteractiveTransaction tx = antidoteClient.startTransaction(domain, domain);
+        S3UserPolicy userPolicy = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("_hello")), new ArrayList<>());
+        userPolicy.assignPolicy(tx, ByteString.copyFromUtf8("user"));
+        tx.commitTransaction();
+    }*/
     
 }

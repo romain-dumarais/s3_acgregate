@@ -486,10 +486,10 @@ public class S3_Test2Policies extends S3Test{
     @Test
     public void scenario_8(){
         //set situation
-         try{
+        try{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
-            S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
-            S3UserPolicy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+            S3BucketPolicy bucketPolicy = new S3BucketPolicy();
+            S3UserPolicy userPolicy = new S3UserPolicy();
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             userPolicy.assignPolicy(tx1, user1);
             userPolicy.assignPolicy(tx1, user2);
@@ -510,6 +510,7 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("8 : admin reset all resources : fail");
             System.err.println(e);
         }
+        
          //user1 fails to read object1
         try{
             S3InteractiveTransaction tx2 = antidoteClient.startTransaction(user1, domain);

@@ -66,14 +66,12 @@ public class S3Test {
      */
     @Test
     public void allTests(){
-        resetAll();
-        deleteEnv();
-        printResources();
+        //printResources();
         System.out.println("#### DACCORD tests ####");
         S3_Test1ACLs test1 = new S3_Test1ACLs();
         S3_Test2Policies test2 = new S3_Test2Policies();
         S3_Test3Attacks test3 = new S3_Test3Attacks();
-        
+        try{
         //verify that it is impossible to start unsecure transactions
         test1.scenario_0(); 
         
@@ -118,6 +116,10 @@ public class S3Test {
         test3.scenario_11();
         test3.scenario_12();
         */
+        }finally{
+        resetACL();
+        deleteEnv();
+        }
     }
     
     private void deleteEnv(){
@@ -131,13 +133,13 @@ public class S3Test {
         root.deleteUser(tx1, user2);
     }
     
-    private void resetAll(){
+    private void resetACL(){
         S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain, domain);
-        S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
-        S3UserPolicy userPolicy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
+        /*S3BucketPolicy bucketPolicy = new S3BucketPolicy();
+        S3UserPolicy userPolicy = new S3UserPolicy();
         bucketPolicy.assignPolicy(tx1, bucket1.getName());
         userPolicy.assignPolicy(tx1, user1);
-        userPolicy.assignPolicy(tx1, user2);
+        userPolicy.assignPolicy(tx1, user2);*/
 
         HashMap<String, String> defaultPermissions;
         defaultPermissions = new HashMap<>();

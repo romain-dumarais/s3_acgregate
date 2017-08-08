@@ -19,6 +19,7 @@ import eu.antidotedb.client.messages.AntidoteResponse;
 import eu.antidotedb.client.transformer.Transformer;
 import eu.antidotedb.client.transformer.TransformerWithDownstream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -200,6 +201,11 @@ public class S3AccessMonitor extends AccessMonitor{
         if(!isOpPolicyAllowed(downstream, connection, descriptor, operation, key)){
             throw new AccessControlException("Policy assign not allowed");
         }else{
+            //protect the read-only domain flag
+            for(ByteString group:policyObject.getGroups()){
+                if(group.toStringUtf8().startsWith("_domain_")){
+                    throw new AccessControlException("group format not allowed");}
+            }
             ByteString policyBucket, policyKey;
             switch(operation){
                 case ASSIGNUSERPOLICY:
@@ -215,8 +221,10 @@ public class S3AccessMonitor extends AccessMonitor{
             }
             
             //add the read-only domain flag
-            policyObject.addGroup(S3KeyLink.domainFlag(currentDomain(connection)));
-            ByteString policyValue = policyObject.encode();
+            List<ByteString> groupList = new ArrayList<>();
+            groupList.add(S3KeyLink.domainFlag(currentDomain(connection)));
+            groupList.addAll(policyObject.getGroups());
+            ByteString policyValue = new S3Policy(groupList, policyObject.getStatements()).encode();;
                   
             //policy assignment
             AntidotePB.ApbBoundObject policy = AntidotePB.ApbBoundObject.newBuilder()
@@ -379,19 +387,36 @@ public class S3AccessMonitor extends AccessMonitor{
      * @param requestedPolicies map with the references of the policies
      * @return accessResources
      */
-    private Map<String, S3AccessResource> getResources(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, Map<String, AntidotePB.ApbBoundObject> requestedPolicies) {
-        Map<String, S3AccessResource> accessResources= new HashMap<>();
+    private List<S3AccessResource> getResources(AntidoteRequest.Handler<AntidoteResponse> downstream, ByteString descriptor, Map<String, AntidotePB.ApbBoundObject> requestedPolicies) {
+        List<S3AccessResource> accessResources= new ArrayList<>();
         if(requestedPolicies.containsKey("userPolicy")){
-            accessResources.put("userPolicy", policyMergerHelper(readHelper(downstream, descriptor, requestedPolicies.get("userPolicy")).getMvreg().getValuesList()));
+            S3Policy userpolicy = policyMergerHelper(readHelper(downstream, descriptor, requestedPolicies.get("userPolicy")).getMvreg().getValuesList());
+            //groups
+            /*
+            for(ByteString group : userpolicy.getGroups()){
+                if(!group.toStringUtf8().startsWith("_")){
+                    AntidotePB.ApbBoundObject policy = AntidotePB.ApbBoundObject.newBuilder()
+                            .setBucket(S3KeyLink.userBucket(domain))
+                            .setKey(S3KeyLink.userPolicy(group))
+                            .setType(AntidotePB.CRDT_type.MVREG).build();
+                    accessResources.add(policyMergerHelper(readHelper(downstream, descriptor, policy).getMvreg().getValuesList()));
+                }
+            }*/
+            accessResources.add(userpolicy);
         }
         if(requestedPolicies.containsKey("bucketPolicy")){
-            accessResources.put("bucketPolicy", policyMergerHelper(readHelper(downstream, descriptor, requestedPolicies.get("bucketPolicy")).getMvreg().getValuesList()));
+            S3Policy bucketpolicy = policyMergerHelper(readHelper(downstream, descriptor, requestedPolicies.get("bucketPolicy")).getMvreg().getValuesList());
+            //groups
+            for(ByteString group : bucketpolicy.getGroups()){
+                
+            }
+            accessResources.add(bucketpolicy);
         }
         if(requestedPolicies.containsKey("bucketACL")){
-            accessResources.put("bucketACL",new Permissions(readHelper(downstream, descriptor, requestedPolicies.get("bucketACL")).getPolicy().getPermissionsList()));
+            accessResources.add(new Permissions(readHelper(downstream, descriptor, requestedPolicies.get("bucketACL")).getPolicy().getPermissionsList()));
         }
         if(requestedPolicies.containsKey("objectACL")){
-            accessResources.put("objectACL",new Permissions(readHelper(downstream, descriptor, requestedPolicies.get("objectACL")).getPolicy().getPermissionsList()));
+            accessResources.add(new Permissions(readHelper(downstream, descriptor, requestedPolicies.get("objectACL")).getPolicy().getPermissionsList()));
         }
         return accessResources;
     }
@@ -415,7 +440,7 @@ public class S3AccessMonitor extends AccessMonitor{
         //if(domain.equals(currentUser)){return true;}
         
         Map<String, AntidotePB.ApbBoundObject> requestedPolicies = this.decisionprocedure.s3requestedPolicies(currentUser, domain, targetObject, operation);
-        Map<String, S3AccessResource> accessResources = getResources(downstream, descriptor, requestedPolicies);
+        List<S3AccessResource> accessResources = getResources(downstream, descriptor, requestedPolicies);
         /*Collection<ByteString> bucketACL = readHelper(downstream, descriptor, AntidotePB.ApbBoundObject.newBuilder()
                 .setBucket(S3KeyLink.securityBucket(targetObject.getBucket()))
                 .setKey(S3KeyLink.bucketACL(currentUser))
@@ -470,7 +495,7 @@ public class S3AccessMonitor extends AccessMonitor{
         S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));
         S3BucketPolicy bucketPolicy = (S3BucketPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.securityBucket(targetObject.getBucket()), S3KeyLink.bucketPolicy());*/
         Map<String, AntidotePB.ApbBoundObject> requestedResources = this.decisionprocedure.s3requestedPolicies(currentUser, domain, targetObject, operation);
-        Map<String, S3AccessResource> accessResources = getResources(downstream, descriptor, requestedResources);
+        List<S3AccessResource> accessResources = getResources(downstream, descriptor, requestedResources);
         
         switch(operation){
             case READOBJECTACL:
@@ -522,7 +547,7 @@ public class S3AccessMonitor extends AccessMonitor{
         S3UserPolicy userPolicy = (S3UserPolicy) readPolicyUnchecked(downstream, descriptor, S3KeyLink.userBucket(domain), S3KeyLink.userPolicy(currentUser));*/
         AntidotePB.ApbBoundObject target;
         Map<String, AntidotePB.ApbBoundObject> requestedPolicies;
-        Map<String, S3AccessResource> accessResources;
+        List<S3AccessResource> accessResources;
         switch(operation){
             case ASSIGNUSERPOLICY:
                 target= AntidotePB.ApbBoundObject.newBuilder().setKey(key)
