@@ -11,7 +11,6 @@ import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.S3InteractiveTransaction;
 import eu.antidotedb.client.accessresources.S3ObjectACL;
 import eu.antidotedb.client.accessresources.S3Operation;
-import eu.antidotedb.client.accessresources.S3Policy;
 import eu.antidotedb.client.accessresources.S3Statement;
 import eu.antidotedb.client.accessresources.S3UserPolicy;
 import eu.antidotedb.client.decision.AccessControlException;
@@ -64,7 +63,6 @@ public class S3_Test3Attacks extends S3Test{
             objectACL.assign(tx1, bucket1.getName(), object2.getRef().getKey());
             bucketACL.assign(tx1, bucket1.getName());
             tx1.commitTransaction();
-            System.out.println("11: admin reset all resources : success");
         }catch(Exception e){
             System.err.println("11: admin reset all resources : fail");
         }
@@ -108,9 +106,8 @@ public class S3_Test3Attacks extends S3Test{
             Bucket<String> userBucket = Bucket.create(mappingUserBucket.toStringUtf8());
             MVRegisterRef<String> user1PolicyRef = userBucket.multiValueRegister(mappingUserPolicy.toStringUtf8());
             CrdtMVRegister<String> aclobject1 = user1PolicyRef.toMutable();
-            //S3Statement fullrights = new S3Statement(true, Arrays.asList("user1"), Arrays.asList("*"), Arrays.asList("object1TestS3"), "");
-            String fullrights = "\"Statement\": [{\n    \"Sid\": \"1\",\n    \"Effect\": \"Allow\",\n    \"Principal\":[\""+user1.toStringUtf8()+"\"],\n    \"Action\":\"*\",\n    \"Resource\":{\"object\": ["+object1.getRef().getKey().toStringUtf8()+"]}\n  }]";
-            aclobject1.set(fullrights);
+            S3Statement fullrights = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.WRITEOBJECT, S3Operation.READOBJECT, S3Operation.WRITEOBJECTACL), bucket1.getName(),Arrays.asList("object1TestS3"), "");
+            aclobject1.set(fullrights.encode().toString());
             aclobject1.push(tx4);
             tx4.commitTransaction();
             System.err.println("11: admin fails to bypass Policy write check : fail");

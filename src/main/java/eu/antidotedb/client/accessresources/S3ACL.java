@@ -78,18 +78,5 @@ public abstract class S3ACL{
         return result;
     }
 
-    
-    
-    public static boolean explicitAllow(Collection<ByteString> acl, String operation){
-        return acl.contains(ByteString.copyFromUtf8(operation));
-    }
-    
-    public static boolean explicitDeny(Collection<ByteString> acl,String operation){
-        if(acl.isEmpty()){
-            return false;
-        }else{
-            return !acl.contains(ByteString.copyFromUtf8(operation));
-        }
-    }
 
 }

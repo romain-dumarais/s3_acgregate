@@ -69,4 +69,13 @@ public final class S3KeyLink {
     public static ByteString domainFlag(ByteString domain){
         return ByteString.copyFromUtf8("_domain_").concat(domain);
     }
+
+    /**
+     * method to check that group names that the user can use
+     * @param group
+     * @return 
+     */
+    public static boolean isDomainFlag(ByteString group) {
+        return group.toStringUtf8().startsWith("_");
+    }
 }

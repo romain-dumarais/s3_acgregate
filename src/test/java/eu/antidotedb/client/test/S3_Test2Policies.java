@@ -544,14 +544,10 @@ public class S3_Test2Policies extends S3Test{
             S3DomainManager domainManager = antidoteClient.loginAsRoot(domain);
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain,domain);
             Bucket<String> securityBucket = Bucket.create(domainManager.getKeyLink().securityBucket(bucket1.getName()).toStringUtf8());
-            //TODO : Romain : more precise implementation of domain flag
-            //RegisterRef<String> domainFlagRef = securityBucket.register("domain", ValueCoder.utf8String); // grow-only Map
-            //CrdtRegister<String> domainFlag = domainFlagRef.toMutable();
-            //domainFlag.set("newdomain");
             S3BucketPolicy bucketPolicy = new S3BucketPolicy();
             bucketPolicy.readPolicy(tx1, bucket1.getName());
             bucketPolicy.addGroup(ByteString.copyFromUtf8("_domain_").concat(newdomain));
-            bucketPolicy.assignPolicy(tx1, bucket1.getName());//TODO : Romain : read & write in same Tx ?
+            bucketPolicy.assignPolicy(tx1, bucket1.getName());
             tx1.commitTransaction();
             System.err.println("9 : transfer ownerhsip : fail");
         }catch(AccessControlException e){
@@ -584,27 +580,28 @@ public class S3_Test2Policies extends S3Test{
             System.err.println("9 : user3 (newdomain) fails to read in domain : fail");
             System.err.println(e);
         }
-        //admin from newdomain tries to get object1
+        //admin from newdomain tries to get object1 because of initial invariant
         try{
             S3InteractiveTransaction tx4 = antidoteClient.startTransaction(admin, newdomain);
             object1.getRef().read(tx4);
             tx4.commitTransaction();
-            System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
+            System.err.println("9 : admin (newdomain) can not read object1 (domain) : fail");
         }catch(AccessControlException e){
-            System.out.println("9 : admin (newdomain) reads object1 (domain) : success");
+            System.out.println("9 : admin (newdomain) can not read object1 (domain) : success");
         }catch(Exception e){
-            System.err.println("9 : admin (newdomain) reads object1 (domain) : fail");
+            System.err.println("9 : admin (newdomain) can not read object1 (domain) : fail");
             System.err.println(e);
         }
         List<String> obj1NewDomain = null, obj1Domain = null;
-        //domain2 root try to access domain
+        //newdomain root try to access newdomain object
         try{
             //S3KeyLink newdomainManager = antidoteClient.loginAsRoot(newdomain);
             S3InteractiveTransaction tx5 = antidoteClient.startTransaction(newdomain,newdomain);
             obj1NewDomain = object1.getRef().read(tx5);
             tx5.commitTransaction();
+            System.out.println("9 : newdomain root accesses object1 duplicate in newdomain : success");
         }catch(Exception e){
-            System.err.println("9 : newdomain root tries to access object1 : fail");
+            System.err.println("9 : newdomain root accesses object1 duplicate in newdomain : fail");
             System.err.println(e);
         }
         try{
@@ -616,9 +613,9 @@ public class S3_Test2Policies extends S3Test{
             System.err.println(e);
         }
         if(obj1Domain!=null && obj1Domain.equals(obj1NewDomain)){
-            System.out.println("9 : newdomain root tries to access object1 : success");
+            System.err.println("9 : newdomain root tries to access object1 from domain : fail");
         }else{
-            System.err.println("9 : newdomain root tries to access object1 : fail");
+            System.out.println("9 : newdomain root tries to access object1 from domain : fail");
         }
     }
     

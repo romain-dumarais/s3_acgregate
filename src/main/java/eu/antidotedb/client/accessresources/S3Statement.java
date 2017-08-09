@@ -97,7 +97,6 @@ public class S3Statement {
         //resourcesJson.add("resourceType", "");//TODO : Romain
         
         JsonObject statementJson  = Json.object();
-        //statementJson.add("Sid", 1);//TODO : Romain
         statementJson.add("Effect", effect);
         statementJson.add("Principals", principalsJson);
         statementJson.add("Actions", actionsJson);

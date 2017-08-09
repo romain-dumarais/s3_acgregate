@@ -111,11 +111,14 @@ public class S3Test {
         //check domain invariant & domain flag functions
         test2.scenario_9();
         
-        /*
-        test2.scenario_10();//TODO : Romain : appliation layer
-        test3.scenario_11();
-        test3.scenario_12();
-        */
+        //TODO : Romain : application layer operation-based accessControl
+        //test2.scenario_10();
+        
+        //check no user can access unauthorised data with hardcoded key imitations
+        test3.scenario_11(); 
+        
+        //concurrent tests
+        //test3.scenario_12();
         }finally{
         resetACL();
         deleteEnv();
@@ -135,11 +138,6 @@ public class S3Test {
     
     private void resetACL(){
         S3InteractiveTransaction tx1 = antidoteClient.startTransaction(domain, domain);
-        /*S3BucketPolicy bucketPolicy = new S3BucketPolicy();
-        S3UserPolicy userPolicy = new S3UserPolicy();
-        bucketPolicy.assignPolicy(tx1, bucket1.getName());
-        userPolicy.assignPolicy(tx1, user1);
-        userPolicy.assignPolicy(tx1, user2);*/
 
         HashMap<String, String> defaultPermissions;
         defaultPermissions = new HashMap<>();
