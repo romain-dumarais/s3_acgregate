@@ -46,7 +46,7 @@ public class S3_Test3Attacks extends S3Test{
             S3InteractiveTransaction tx1 = antidoteClient.startTransaction(admin, domain);
             S3BucketPolicy bucketPolicy = new S3BucketPolicy(new ArrayList<>(),new ArrayList<>());
             S3UserPolicy user1Policy = new S3UserPolicy(new ArrayList<>(),new ArrayList<>());
-            S3Statement user1Statement = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), null);
+            S3Statement user1Statement = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), new HashMap<>());
             S3UserPolicy user2Policy = new S3UserPolicy(new ArrayList<>(), Arrays.asList(user1Statement));
             bucketPolicy.assignPolicy(tx1, bucket1.getName());
             user1Policy.assignPolicy(tx1, user1);
@@ -106,7 +106,7 @@ public class S3_Test3Attacks extends S3Test{
             Bucket<String> userBucket = Bucket.create(mappingUserBucket.toStringUtf8());
             MVRegisterRef<String> user1PolicyRef = userBucket.multiValueRegister(mappingUserPolicy.toStringUtf8());
             CrdtMVRegister<String> aclobject1 = user1PolicyRef.toMutable();
-            S3Statement fullrights = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.WRITEOBJECT, S3Operation.READOBJECT, S3Operation.WRITEOBJECTACL), bucket1.getName(),Arrays.asList("object1TestS3"), null);
+            S3Statement fullrights = new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.WRITEOBJECT, S3Operation.READOBJECT, S3Operation.WRITEOBJECTACL), bucket1.getName(),Arrays.asList("object1TestS3"), new HashMap<>());
             aclobject1.set(fullrights.encode().toString());
             aclobject1.push(tx4);
             tx4.commitTransaction();
@@ -144,7 +144,7 @@ public class S3_Test3Attacks extends S3Test{
                 ByteString user = ByteString.copyFromUtf8("user"+i);
                 domainManager.createUser(tx1, user);
                 ArrayList<S3Statement> statements = new ArrayList<>();
-                statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), null));
+                statements.add(new S3Statement(true, Arrays.asList(user.toStringUtf8()), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(), new HashMap<>()));
                 S3UserPolicy userPolicy = new S3UserPolicy(new ArrayList<>(), statements);
                 userPolicy.assignPolicy(tx1, user);
             }
@@ -179,8 +179,8 @@ public class S3_Test3Attacks extends S3Test{
         }catch(Exception e){
             System.err.println("12: read resources : fail");
         }
-        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT),bucket1.getName(), Arrays.asList("object2TestS3"), null));
-        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(),Arrays.asList("object2TestS3"), null));
+        buckPolVerif.addStatement(new S3Statement(true, Arrays.asList("user1"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT),bucket1.getName(), Arrays.asList("object2TestS3"), new HashMap<>()));
+        userPolVerif.addStatement(new S3Statement(true, Arrays.asList("user3"), Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), bucket1.getName(),Arrays.asList("object2TestS3"), new HashMap<>()));
         try{
             assertEquals(buckPol,buckPolVerif);
             assertEquals(buckACL.getRight("user2"), "none");

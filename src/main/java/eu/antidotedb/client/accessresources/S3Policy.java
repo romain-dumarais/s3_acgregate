@@ -9,6 +9,7 @@ import static eu.antidotedb.client.accessresources.S3Operation.*;
 import eu.antidotedb.client.decision.S3Request;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Extends MVregister
@@ -191,15 +192,22 @@ public class S3Policy implements S3AccessResource{
         return this.statements.contains(statement);
     }
 
-    private boolean parseConditionBlock(JsonArray conditionBlock, Object userData) {
-        /*for(JsonValue object:conditionBlock){
-                String key = object.asObject().get("conditionType").asString();
-                if(object.asObject().get("isEqual")!=null)
-                String isEqual = object.asObject().get("isEqual").asString();
-                String isNot = object.asObject().get("isNot").asString();
-        }*/
-        return false;
-        //TODO : Romain
+    /**
+     * naive interpretation ofthe condition block as an map of objects 
+     * {key, value} and compare it to the userData map. if all values are 
+     * contained in the userData, return true, else false
+     * TODO : add more field : is in, is not, etc
+     * TODO : get values of data in antidote > cf ACGreGate & Security layers
+     * @param conditionBlock
+     * @param userData
+     * @return {@code true} if every pair is in the userData, {@code false} if not
+     */
+    private boolean parseConditionBlock(Map<String,String> conditionBlock, Map<String, ByteString> userData) {
+        if(conditionBlock.isEmpty()){return true;}
+        for(String key:conditionBlock.keySet()){
+            if(!userData.get(key).toStringUtf8().equals(conditionBlock.get(key))){return false;}
+        }
+        return true;
     }
     
 }

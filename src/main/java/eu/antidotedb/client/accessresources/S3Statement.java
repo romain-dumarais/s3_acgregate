@@ -24,7 +24,7 @@ public class S3Statement {
     private final List<S3Operation> actions; //TODO : Romain : use an ENUM type
     private final List<String> resourcesList;
     private final ByteString resourcebucket;
-    private final JsonArray conditionBlock;
+    private final Map<String,String> conditionBlock;
 
     /**
      * creates a Statement object with
@@ -35,7 +35,7 @@ public class S3Statement {
      * @param resources list of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString resourceBucket, List<String> resources, JsonArray conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString resourceBucket, List<String> resources, Map<String, String> conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -52,7 +52,7 @@ public class S3Statement {
      * @param bucketKey name of the bucket for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString bucketKey, JsonArray conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString bucketKey, Map<String, String> conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -69,7 +69,7 @@ public class S3Statement {
      * @param resourcetype type of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, AntidotePB.CRDT_type resourcetype, JsonArray conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, AntidotePB.CRDT_type resourcetype, Map<String, String> conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -103,7 +103,11 @@ public class S3Statement {
         statementJson.add("Principals", principalsJson);
         statementJson.add("Actions", actionsJson);
         statementJson.add("Resources", resourcesJson);
-        if(conditionBlock!=null && !conditionBlock.isEmpty()){statementJson.add("ConditionBlock",conditionBlock);}
+        JsonObject conditionBlockjson = new JsonObject();
+        for(String key : conditionBlock.keySet()){
+            conditionBlockjson.add(key, conditionBlock.get(key));
+        }
+        statementJson.add("ConditionBlock",conditionBlockjson);
         return statementJson;
     }
     
@@ -119,7 +123,7 @@ public class S3Statement {
         List<S3Operation> actions = new ArrayList<>();
         List<String> resourcesList = new ArrayList<>();
         ByteString resourcebucket;
-        JsonArray conditionBlock=new JsonArray();
+        Map<String,String> conditionBlock = new HashMap<>();
         
         effect = value.get("Effect").asBoolean();
         JsonArray principalsJson = value.get("Principals").asArray();
@@ -133,7 +137,10 @@ public class S3Statement {
         //TODO : Romain : add resourceType
         
         if(value.get("ConditionBlock")!=null){
-            conditionBlock = value.get("ConditionBlock").asArray();
+            JsonObject conditionBlockJson=value.get("ConditionBlock").asObject();
+            for(String condition :conditionBlockJson.names()){
+                conditionBlock.put(condition, conditionBlockJson.get(condition).asString());
+            }
         }
         
         //parse Json Arrays to list
@@ -200,7 +207,7 @@ public class S3Statement {
     /**
      * @return conditionBlock may be null
      */
-    public JsonArray getConditionBlock(){
+    public Map<String,String> getConditionBlock(){
         return this.conditionBlock;
     }
 }

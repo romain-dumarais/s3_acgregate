@@ -18,7 +18,9 @@ import eu.antidotedb.client.accessresources.S3BucketPolicy;
 import eu.antidotedb.client.accessresources.S3Operation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,15 +34,20 @@ public class utilTest {
     final Bucket<String> bucket1=Bucket.create("testbucket");
     final ByteString domain = ByteString.copyFromUtf8("test_domain");
     
-    S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), new JsonArray());
-    S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), null);
-    S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), new JsonArray().add("another conditionBlock"));
-    S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), new JsonArray().add("hello"));
-    S3Statement statement5 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), new JsonArray().add("statement5"));
     
     
     @Test
     public void mergetestUser(){
+        Map<String,String> condition1= new HashMap<>(); condition1.put("IP", "168.168.168.168");
+        Map<String,String> condition2= new HashMap<>(); condition2.put("hour","12"); condition2.put("day","friday");
+        Map<String,String> condition3= new HashMap<>(); condition3.putAll(condition2); condition3.putAll(condition1);
+
+
+        S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition1);
+        S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition2);
+        S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition3);
+        S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), condition1);
+        S3Statement statement5 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), condition2);
         
         S3UserPolicy policy1object = new S3UserPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group1"))), new ArrayList(Arrays.asList(statement1, statement2, statement3, statement4)));
         S3UserPolicy policy2object = new S3UserPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group2"))), new ArrayList(Arrays.asList(statement1, statement2, statement3, statement5)));
@@ -67,6 +74,16 @@ public class utilTest {
     
         @Test
     public void mergetestBucket(){
+         Map<String,String> condition1= new HashMap<>(); condition1.put("IP", "168.168.168.168");
+        Map<String,String> condition2= new HashMap<>(); condition2.put("hour","12"); condition2.put("day","friday");
+        Map<String,String> condition3= new HashMap<>(); condition3.putAll(condition2); condition3.putAll(condition1);
+
+
+        S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition1);
+        S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition2);
+        S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), condition3);
+        S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), condition1);
+        S3Statement statement5 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), condition2);
         
         S3BucketPolicy policy1object = new S3BucketPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group1"))), new ArrayList(Arrays.asList(statement1, statement2, statement3, statement4)));
         S3BucketPolicy policy2object = new S3BucketPolicy(new ArrayList(Arrays.asList(ByteString.copyFromUtf8("user_group2"))), new ArrayList(Arrays.asList(statement1, statement2, statement3, statement5)));

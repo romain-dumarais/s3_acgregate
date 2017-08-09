@@ -55,7 +55,6 @@ public class S3Client extends AntidoteClient{
     
     //INTERACTIVE
     public S3InteractiveTransaction startTransaction(ByteString user, ByteString domain, Map<String, ByteString> userData){
-        //if(user.equals(domain)){throw new AccessControlException("using domain name is not permitted");}
         S3InteractiveTransaction tx = new S3InteractiveTransaction(this, this.accessMonitor);
         if(userData == null) {userData=new HashMap<>();}
         this.accessMonitor.setCurrentUser(tx.connection, user);
