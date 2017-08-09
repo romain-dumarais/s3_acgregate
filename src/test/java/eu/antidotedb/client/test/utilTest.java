@@ -94,15 +94,15 @@ public class utilTest {
         for(int i=0; i<expectedPolicy.getGroups().size();i++){
         Assert.assertEquals(expectedPolicy.getGroup(i),policy.getGroup(i));
         }
-        for(int i=0; i<expectedPolicy.getStatements().size();i++){
-        Assert.assertEquals(expectedPolicy.getStatement(i),policy.getStatement(i));
+        for(S3Statement stat : expectedPolicy.getStatements()){
+            Assert.assertTrue(policy.getStatements().contains(stat));
         }
         //reverse inclusion
         for(int i=0; i<policy.getGroups().size();i++){
         Assert.assertEquals(policy.getGroup(i),expectedPolicy.getGroup(i));
         }
-        for(int i=0; i<policy.getStatements().size();i++){
-        Assert.assertEquals(policy.getStatement(i),expectedPolicy.getStatement(i));
+        for(S3Statement stat : policy.getStatements()){
+            Assert.assertTrue(expectedPolicy.getStatements().contains(stat));
         }
     }
     
@@ -130,7 +130,6 @@ public class utilTest {
     /**
      * test to check if a domain flag is understood as specified
      */
-    /*
     @Test
     public void domainFlagTest(){
         AntidoteConfigManager antidoteConfigManager = new AntidoteConfigManager();
@@ -140,6 +139,6 @@ public class utilTest {
         S3UserPolicy userPolicy = new S3UserPolicy(Arrays.asList(ByteString.copyFromUtf8("_hello")), new ArrayList<>());
         userPolicy.assignPolicy(tx, ByteString.copyFromUtf8("user"));
         tx.commitTransaction();
-    }*/
+    }
     
 }

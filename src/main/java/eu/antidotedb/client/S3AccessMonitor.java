@@ -338,8 +338,14 @@ public class S3AccessMonitor extends AccessMonitor{
     
     /**
      * helper to merge concurrent updates for Policy objects
+     * The current merge operation computes a policy with the union of the ALLOW
+     * statements and the intersection of DENY statement to be as restrictive as
+     * possible.
+     * it is to notice that the minimal policy get the intersection of the groups
+     * and does not ensure the restrictive character of the group assignment.
      * @param concurrentPolicies set of concurrent objects
      * @return minimalPolicy the policy object with the intersection of the groups and statements
+     * TODO : Romain : change format to have separated negative & positive statements
      */
     public S3Policy policyMergerHelper(List<ByteString> concurrentPolicies){
         
@@ -363,12 +369,22 @@ public class S3AccessMonitor extends AccessMonitor{
                     }
                     if(isIntersection){minimalPolicy.addGroup(group);}
                 }
+                //Intersection of positive statements
                 for(S3Statement statement : statementsList){
-                    boolean isIntersection=true;
-                    for(S3Policy policy : policies){
-                        isIntersection = isIntersection && policy.containsStatement(statement);
+                    if(statement.getEffect()){
+                        boolean isIntersection=true;
+                        for(S3Policy policy : policies){
+                            isIntersection = isIntersection && policy.containsStatement(statement);
+                        }
+                        if(isIntersection){minimalPolicy.addStatement(statement);}
                     }
-                    if(isIntersection){minimalPolicy.addStatement(statement);}
+                }
+                //Union of negative statements
+                for(S3Policy policy:policies){
+                    for(S3Statement statement : policy.getStatements()){
+                        if((!statement.getEffect()) && (!minimalPolicy.containsStatement(statement))){
+                            minimalPolicy.addStatement(statement);}
+                    }
                 }
                 return minimalPolicy;
         }
