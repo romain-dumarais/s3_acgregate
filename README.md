@@ -2,11 +2,6 @@ Antidote Access Control implementation
 ============
 
 ! CAUTION : WORK IN PROGRESS !
- * domain flag : ok
- * user Policies : ok
- * bucket Policies : ok
- * bucket ACL : ok
- * object ACL : ok
  * user & bucket groups : not implemented
  * static Transactions : not implemented
  * noTransaction : not implemented
@@ -16,7 +11,7 @@ It is implemented above Mathias Weber implementation of ACGreGate model (Access 
 
 You can find the JAVA client on the repository of the SyncFree project : https://github.com/SyncFree/antidote-java-client
 
-To use it
+How to use it
 -----------
 
 You can download the Java Client by running 
@@ -37,11 +32,14 @@ To use it you have to start a local Antidote node by cloning Antidote data base 
 		make console
 
 In your favorite IDE you can add these librairies to the Java Client, to use the Java API.
-This Access Control also uses the Minimal JSON parser as a submodule, you can find documentation here :
+This Access Control also uses the Minimal JSON parser as a submodule, you can find documentation here : https://github.com/ralfstx/minimal-json
 
-		https://github.com/ralfstx/minimal-json
+Documentation
+-----------
 
-### API ###
+please find all the needed informations [here](docs/README.md)
+
+#### API ####
 
 Create an instance of S3Client to start & commit transaction.
 The data storage is partitioned into "domains", that can not intersect.

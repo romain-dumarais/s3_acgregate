@@ -1,7 +1,19 @@
 Use S3 Access Control for Antidote
 -----------
 
-### Resource management ###
+please find the formalization of the model [here](20170809_draft7.pdf).
+
+## invariants ##
+
+This S3 implementation provide 3 invariants :
+ * no data can be accessed by a user 'userA' until its root owner grants 'userA' permissions on this data.
+ * as soon as an update is visible, where the permissions of a user 'userA' on a data is explcitly revoked, 'userA' can not access this data until the permission is granted again.
+ * there is always at least one user who can access a data (i.e and its metadata).
+ 
+In this implementation, we separate the database into 'domains', and every domain has root credentials to create and delete buckets & users.
+Please take note that in the second invariant, the action to assign a user to a group is not an explicit right revocation, and does not preserve this invariant. But to revoke a group permission verify this invariant.
+
+## Resource management ##
 
 Access Resources are organised as follows : 
 ![S3-ACGreGate_Access_Resources](SeenResources.png)
@@ -10,7 +22,7 @@ Access Resources are organised as follows :
 
 - ACL can be build with an object : 
 
-		Map<user, permissions>
+		Map<String user, String permissions>
 
 - to read ACLs from the database, create an empty S3ACL object and call : 
 
@@ -22,6 +34,8 @@ Access Resources are organised as follows :
 		acl.setRight("user1", "read");
 		acl.setRight("user2", "write");
 		acl.assign(s3Transaction, bucketName, objectKey); 
+- there is a static method to assign permission to a user in a remote ACL : 
+		S3ACL.assignForUserStatic(s3Transaction, bucketName, userID, rightToAssign);
 
 		
 ### Managing Policies ###
