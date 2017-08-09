@@ -15,8 +15,6 @@ import java.util.List;
  * Is there any explicit deny ? Any explicit allow ?
  * If needed, requests a group Policy
  * @author romain-dumarais
- * TODO : Romain : add groups
- * TODO : Romain : check initialization
  */
 public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     
@@ -195,7 +193,6 @@ public class S3DecisionProcedure /*implements DecisionProcedure*/ {
     //--------------------------------
     //      Policies Management
     //--------------------------------
-    //TODO : Romain : add userData
     
     //--------- Bucket Policy ----------
     

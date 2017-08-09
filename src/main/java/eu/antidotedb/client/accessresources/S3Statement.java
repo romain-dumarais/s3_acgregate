@@ -8,7 +8,9 @@ import com.google.protobuf.ByteString;
 import eu.antidotedb.antidotepb.AntidotePB;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -22,7 +24,7 @@ public class S3Statement {
     private final List<S3Operation> actions; //TODO : Romain : use an ENUM type
     private final List<String> resourcesList;
     private final ByteString resourcebucket;
-    private final String conditionBlock;
+    private final JsonArray conditionBlock;
 
     /**
      * creates a Statement object with
@@ -33,7 +35,7 @@ public class S3Statement {
      * @param resources list of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString resourceBucket, List<String> resources, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString resourceBucket, List<String> resources, JsonArray conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -50,7 +52,7 @@ public class S3Statement {
      * @param bucketKey name of the bucket for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString bucketKey, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, ByteString bucketKey, JsonArray conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -67,7 +69,7 @@ public class S3Statement {
      * @param resourcetype type of objects for which this statement is effective
      * @param conditionBlock optional condition on userData
      */
-    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, AntidotePB.CRDT_type resourcetype, String conditionBlock){
+    public S3Statement(boolean effect, List<String> principals, List<S3Operation> actions, AntidotePB.CRDT_type resourcetype, JsonArray conditionBlock){
         this.actions=actions;
         this.conditionBlock=conditionBlock;
         this.effect=effect;
@@ -101,7 +103,7 @@ public class S3Statement {
         statementJson.add("Principals", principalsJson);
         statementJson.add("Actions", actionsJson);
         statementJson.add("Resources", resourcesJson);
-        if(!conditionBlock.equals("")){statementJson.add("ConditionBlock",conditionBlock);}
+        if(conditionBlock!=null && !conditionBlock.isEmpty()){statementJson.add("ConditionBlock",conditionBlock);}
         return statementJson;
     }
     
@@ -117,7 +119,7 @@ public class S3Statement {
         List<S3Operation> actions = new ArrayList<>();
         List<String> resourcesList = new ArrayList<>();
         ByteString resourcebucket;
-        String conditionBlock;
+        JsonArray conditionBlock=new JsonArray();
         
         effect = value.get("Effect").asBoolean();
         JsonArray principalsJson = value.get("Principals").asArray();
@@ -129,8 +131,11 @@ public class S3Statement {
         
         resourcebucket = ByteString.copyFromUtf8(resourcesJson.get("bucket").asString());
         //TODO : Romain : add resourceType
-        try{conditionBlock = value.get("ConditionBlock").asString();
-        }catch(NullPointerException e){conditionBlock="";}
+        
+        if(value.get("ConditionBlock")!=null){
+            conditionBlock = value.get("ConditionBlock").asArray();
+        }
+        
         //parse Json Arrays to list
         for (JsonValue princip : principalsJson) {principals.add(princip.asString());}
         for(JsonValue action : actionsJson) {actions.add(S3Operation.valueOf(action.asString()));}
@@ -144,9 +149,10 @@ public class S3Statement {
         }
     }
     
+    
     @Override
     public boolean equals(Object o){
-        if(!o.getClass().equals(this.getClass())){return false;}
+        if(!(o instanceof S3Statement)){return false;}
         else{boolean isEqual;
         S3Statement remoteStatement = (S3Statement) o;
         isEqual = this.effect==remoteStatement.getEffect()  
@@ -156,12 +162,7 @@ public class S3Statement {
             isEqual = isEqual && (remoteStatement.getConditionBlock()==null);
         }else{
             isEqual = isEqual && this.conditionBlock.equals(remoteStatement.getConditionBlock());
-        }/*
-        if(this.resourcesList.isEmpty()){
-            isEqual = isEqual && ostatement.getResources().isEmpty();
-        }else{
-            isEqual = isEqual && this.resourcesList.equals(ostatement.getResources());
-        }*/
+        }
         return isEqual;}
     }
 
@@ -199,7 +200,7 @@ public class S3Statement {
     /**
      * @return conditionBlock may be null
      */
-    public String getConditionBlock(){
+    public JsonArray getConditionBlock(){
         return this.conditionBlock;
     }
 }

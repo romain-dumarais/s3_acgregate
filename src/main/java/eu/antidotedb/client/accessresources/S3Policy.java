@@ -86,14 +86,13 @@ public class S3Policy implements S3AccessResource{
     //--------------------------------
     //        Decision process
     //--------------------------------
-    
+    //TODO : Romain : refactor for isExplicitAllow --> return
     @Override
     public boolean explicitAllow(S3Request request){
         boolean isExplicitAllow=false;
         for(S3Statement statement:statements){
             if(statement.getEffect()){
                 switch(request.action){
-                //if(request.action.equals(READBUCKETACL) || request.action.equals(WRITEBUCKETACL) || request.action.equals(READBUCKETPOLICY) || request.action.equals(ASSIGNBUCKETPOLICY)){
                     //targetBucket key stored in resource bucket and in targetKey in request
                     case READBUCKETACL:
                     case READBUCKETPOLICY:
@@ -101,20 +100,23 @@ public class S3Policy implements S3AccessResource{
                     case WRITEBUCKETACL:
                         if(statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && statement.getResourceBucket().equals(request.targetBucket)){
-                            isExplicitAllow=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitAllow = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitAllow=true;}
                         }
                         break;
                     //user ID stored in targetKey in request, in Resources in statement,does not need a current user check (only one policy to check)
                     case READUSERPOLICY:
                     case ASSIGNUSERPOLICY:
                         if(statement.getActions().contains(request.action) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
-                            isExplicitAllow=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitAllow = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitAllow=true;}
                         }
                         break;
                     default:
                         if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
                             && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
-                            isExplicitAllow=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitAllow = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitAllow=true;}
                         }
                         break;
                 }
@@ -138,24 +140,28 @@ public class S3Policy implements S3AccessResource{
                     case WRITEBUCKETACL:
                         if(statement.getActions().contains(request.action) && (statement.getPrincipals().contains(request.subject.toStringUtf8()) || statement.getPrincipals().contains("*")) 
                         && statement.getResourceBucket().equals(request.targetBucket)){
-                            isExplicitDeny=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitDeny = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitDeny=true;}
                         }
                         break;
                     //user ID stored in targetKey in request, in Resources in statement,does not need a current user check (only one policy to check)
                     case READUSERPOLICY:
                     case ASSIGNUSERPOLICY:
                         if(statement.getActions().contains(request.action) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
-                            isExplicitDeny=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitDeny = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitDeny=true;}
                         }
                         break;
                     default:
                         if(statement.getActions().contains(request.action) && statement.getPrincipals().contains(request.subject.toStringUtf8()) 
                             && statement.getResourceBucket().equals(request.targetBucket) && (statement.getResources().contains(request.targetKey.toStringUtf8()) || statement.getResources().contains("*"))){
-                            isExplicitDeny=true;
+                            if(!statement.getConditionBlock().isEmpty()){isExplicitDeny = parseConditionBlock(statement.getConditionBlock(),request.userData);}
+                            else{isExplicitDeny=true;}
                         }
                         break;
                 }
                     //TODO : Romain : add condition Block
+                    
             }
         }
         return isExplicitDeny;
@@ -183,6 +189,17 @@ public class S3Policy implements S3AccessResource{
     }
     public boolean containsStatement(S3Statement statement) {
         return this.statements.contains(statement);
+    }
+
+    private boolean parseConditionBlock(JsonArray conditionBlock, Object userData) {
+        /*for(JsonValue object:conditionBlock){
+                String key = object.asObject().get("conditionType").asString();
+                if(object.asObject().get("isEqual")!=null)
+                String isEqual = object.asObject().get("isEqual").asString();
+                String isNot = object.asObject().get("isNot").asString();
+        }*/
+        return false;
+        //TODO : Romain
     }
     
 }

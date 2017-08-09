@@ -1,5 +1,7 @@
 package eu.antidotedb.client.test;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonValue;
 import com.google.protobuf.ByteString;
 import eu.antidotedb.client.AntidoteClient;
 import eu.antidotedb.client.AntidoteConfigManager;
@@ -30,11 +32,11 @@ public class utilTest {
     final Bucket<String> bucket1=Bucket.create("testbucket");
     final ByteString domain = ByteString.copyFromUtf8("test_domain");
     
-    S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is a condition block");
-    S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "");
-    S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), "this is another condition block");
-    S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), "another condition block");
-    S3Statement statement5 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), "statement5");
+    S3Statement statement1 = new S3Statement(true,Arrays.asList("user1","user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), new JsonArray());
+    S3Statement statement2 = new S3Statement(false,Arrays.asList("user3","user4"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), null);
+    S3Statement statement3 = new S3Statement(true,Arrays.asList("user1"),Arrays.asList(S3Operation.READOBJECTACL,S3Operation.WRITEOBJECTACL), ByteString.copyFromUtf8("testBucket"), Arrays.asList("object1","object2"), new JsonArray().add("another conditionBlock"));
+    S3Statement statement4 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), new JsonArray().add("hello"));
+    S3Statement statement5 = new S3Statement(true,Arrays.asList("user2"),Arrays.asList(S3Operation.READOBJECT,S3Operation.WRITEOBJECT), ByteString.copyFromUtf8("testBucket2"), new JsonArray().add("statement5"));
     
     
     @Test
