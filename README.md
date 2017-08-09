@@ -37,7 +37,8 @@ To use it you have to start a local Antidote node by cloning Antidote data base 
 		make console
 
 In your favorite IDE you can add these librairies to the Java Client, to use the Java API.
-This Access Control also uses the Minimal JSON parser : https://github.com/ralfstx/minimal-json
+This Access Control also uses the Minimal JSON parser : 
+		https://github.com/ralfstx/minimal-json
 
 ### API ###
 

@@ -1,0 +1,3 @@
+[submodule "lib/minimalJSON"]
+	path = lib/minimalJSON
+	url = https://github.com/ralfstx/minimal-json.git
